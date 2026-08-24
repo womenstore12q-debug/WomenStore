@@ -60,7 +60,8 @@ let cartItems = [];
 const cartCountElement = document.querySelector('.cart-count');
 let cartCount = 0;
 
-let favItems = [];
+let favItems = JSON.parse(localStorage.getItem('favItems')) || [];
+const ORDERS_API_URL = "https://script.google.com/macros/s/AKfycbyshJE4mX29mhSTNn3jd8TDOZwTgJD3Wf_SCS6e89e_Lq9aqJpopHXNl8knqsC93ObYtA/exec";
 const favCountElement = document.querySelector('.fav-count');
 
 // Pagination logic
@@ -409,6 +410,20 @@ window.submitOrder = function(event) {
         const targetPhone2 = "967778540339";
         const message = `مرحباً، أود طلب هذا المنتج:%0A%0Aرقم المنتج: ${product.id}%0Aاسم المنتج: ${product.name}%0Aالكمية: ${qty}%0Aسعر الطلب: ${totalPrice} ر.س%0A%0A%0Aبيانات العميل:%0Aالاسم: ${name}%0Aرقم الهاتف: ${phone}%0Aالعنوان: ${address}`;
         
+        // Save order to Google Sheets
+        const orderData = {
+            customerName: name,
+            phone: phone,
+            address: address,
+            orderDetails: `المنتج: ${product.name} (رقم: ${product.id}) - الكمية: ${qty}`,
+            totalPrice: `${totalPrice} ر.س`
+        };
+        fetch(ORDERS_API_URL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify(orderData)
+        }).catch(err => console.error("Error saving order", err));
+        
         // Open WhatsApp in a new tab for the first number
         window.open(`https://wa.me/${targetPhone1}?text=${message}`, '_blank');
         
@@ -537,6 +552,21 @@ window.submitCartOrder = function(event) {
         
         messageText += `%0Aالمجموع الكلي: ${grandTotal} ر.س%0A%0A`;
         messageText += `بيانات العميل:%0Aالاسم: ${name}%0Aرقم الهاتف: ${phone}%0Aالعنوان: ${address}`;
+        
+        // Save cart order to Google Sheets
+        let detailsText = cartItems.map(item => `${item.name} (الكمية: ${item.qty})`).join(' | ');
+        const orderData = {
+            customerName: name,
+            phone: phone,
+            address: address,
+            orderDetails: detailsText,
+            totalPrice: `${grandTotal} ر.س`
+        };
+        fetch(ORDERS_API_URL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify(orderData)
+        }).catch(err => console.error("Error saving order", err));
         
         const targetPhone1 = "967780304833";
         const targetPhone2 = "967778540339";
