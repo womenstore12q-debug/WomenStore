@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <rect width="256" height="256" rx="64" fill="#d4a373"/>
+  <text x="50%" y="40%" font-family="system-ui, -apple-system, sans-serif" font-size="75" font-weight="900" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">عالم</text>
+  <text x="50%" y="75%" font-family="system-ui, -apple-system, sans-serif" font-size="75" font-weight="900" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">المرأة</text>
+</svg>
