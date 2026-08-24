@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="عالم المرأة - وجهتك الأولى لأفضل منتجات العناية بالبشرة، الشعر، مستحضرات التجميل والعطور الفاخرة.">
+    <title>عالم المرأة - لجمالكِ وأناقتكِ</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">عالم المرأة</div>
+        <ul class="nav-links">
+            <li><a href="#home">الرئيسية</a></li>
+            <li><a href="#categories">الأقسام</a></li>
+            <li><a href="#products">المنتجات</a></li>
+            <li><a href="#contact">تواصل معنا</a></li>
+        </ul>
+        <div class="nav-icons">
+            <div class="fav-icon" aria-label="المفضلات" onclick="openFavModal()">
+                <i class="fas fa-heart"></i>
+                <span class="fav-count">0</span>
+            </div>
+            <div class="cart-icon" aria-label="سلة المشتريات" onclick="openCartModal()">
+                <i class="fas fa-shopping-bag"></i>
+                <span class="cart-count">0</span>
+            </div>
+        </div>
+    </nav>
+
+    <header id="home" class="hero">
+        <div class="hero-content">
+            <h1>اكتشفي جمالكِ الحقيقي</h1>
+            <p>أفضل منتجات العناية بالبشرة، الشعر، مستحضرات التجميل والعطور الفاخرة</p>
+            <button class="cta-btn" onclick="document.getElementById('products').scrollIntoView({behavior: 'smooth'})">تسوقي الآن</button>
+        </div>
+        <div class="hero-image">
+            <div class="slider-container">
+                <img src="assets/hero.jpg" alt="سيدة تعتني بجمالها بمنتجات عالم المرأة" class="slide active">
+                <img src="assets/bags_shoes.jpg" alt="منتجات أنيقة عالم المرأة" class="slide">
+            </div>
+        </div>
+    </header>
+
+    <section id="categories" class="categories-section">
+        <div class="section-header">
+            <h2>تسوقي حسب القسم</h2>
+            <p>ابحثي عن منتجاتك المفضلة بسهولة</p>
+        </div>
+        
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="ابحثي عن منتج..." oninput="handleSearch()">
+            <i class="fas fa-search"></i>
+        </div>
+
+        <div class="category-filters" id="categoryFilters">
+            <!-- سيتم إضافة الأقسام تلقائياً هنا -->
+        </div>
+    </section>
+
+    <section id="products" class="products-section">
+        <div class="products-grid" id="productsGrid">
+            <div id="loadingProducts" class="loading-products">
+                <i class="fas fa-spinner fa-spin"></i> جاري تحميل المنتجات...
+            </div>
+            <!-- المنتجات سيتم إضافتها هنا عبر جافاسكريبت -->
+        </div>
+        <div id="loadMoreContainer" style="display: none; text-align: center; margin-top: 3rem;">
+            <button class="cta-btn" onclick="loadMoreProducts()">عرض المزيد <i class="fas fa-chevron-down" style="margin-right: 8px;"></i></button>
+        </div>
+    </section>
+
+
+    <!-- نافذة طلب المنتج (Modal) -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2>طلب المنتج</h2>
+            <p id="modalProductName" class="modal-product-name"></p>
+            <form id="orderForm" onsubmit="submitOrder(event)">
+                <input type="hidden" id="modalProductId">
+                <input type="hidden" id="modalRawPrice">
+                
+                <div class="product-summary-box">
+                    <div class="summary-row">
+                        <span>سعر المنتج:</span>
+                        <span id="modalProductPrice" class="summary-val"></span>
+                    </div>
+                    <div class="summary-row">
+                        <span>الكمية:</span>
+                        <input type="number" id="productQuantity" min="1" value="1" class="qty-input" required oninput="calculateTotal()">
+                    </div>
+                    <div class="summary-row total-row">
+                        <span>المجموع الكلي:</span>
+                        <span id="modalTotalPrice" class="summary-val total-val"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="customerName">الاسم <span class="required">*</span></label>
+                    <input type="text" id="customerName" required placeholder="أدخل اسمك الكريم">
+                </div>
+                <div class="form-group">
+                    <label for="customerPhone">رقم الهاتف <span class="required">*</span></label>
+                    <input type="tel" id="customerPhone" required placeholder="أدخل رقم الهاتف" pattern="[0-9]{9,}" title="يجب إدخال 9 أرقام على الأقل" onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+                </div>
+                <div class="form-group">
+                    <label for="customerAddress">العنوان <span class="required">*</span></label>
+                    <input type="text" id="customerAddress" required placeholder="المدينة، الحي، الشارع...">
+                </div>
+                <button type="submit" class="submit-order-btn">إرسال الطلب <i class="fab fa-whatsapp"></i></button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Favorites Modal -->
+    <div id="favModal" class="modal">
+        <div class="modal-content fav-modal-content">
+            <span class="close-modal" onclick="closeFavModal()">&times;</span>
+            <h2>المفضلات</h2>
+            
+            <div id="favItemsContainer" class="fav-items">
+                <!-- Fav items will be injected here -->
+                <p class="empty-fav-msg">لا توجد منتجات في المفضلة حالياً</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Modal -->
+    <div id="cartModal" class="modal">
+        <div class="modal-content cart-modal-content">
+            <span class="close-modal" onclick="closeCartModal()">&times;</span>
+            <h2>سلة المشتريات</h2>
+            
+            <div id="cartItemsContainer" class="cart-items">
+                <!-- Cart items will be injected here -->
+                <p class="empty-cart-msg">السلة فارغة حالياً</p>
+            </div>
+            
+            <div class="cart-summary">
+                <div class="summary-row total-row">
+                    <span>المجموع الكلي للسلة:</span>
+                    <span id="cartTotalPrice" class="summary-val total-val">0 ر.س</span>
+                </div>
+            </div>
+
+            <h3 class="checkout-title">بيانات إتمام الطلب</h3>
+            <form id="cartCheckoutForm" onsubmit="submitCartOrder(event)">
+                <div class="form-group">
+                    <label for="cartCustomerName">الاسم <span class="required">*</span></label>
+                    <input type="text" id="cartCustomerName" required placeholder="أدخل اسمك الكريم">
+                </div>
+                <div class="form-group">
+                    <label for="cartCustomerPhone">رقم الهاتف <span class="required">*</span></label>
+                    <input type="tel" id="cartCustomerPhone" required placeholder="أدخل رقم الهاتف" pattern="[0-9]{9,}" title="يجب إدخال 9 أرقام على الأقل" onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+                </div>
+                <div class="form-group">
+                    <label for="cartCustomerAddress">العنوان <span class="required">*</span></label>
+                    <input type="text" id="cartCustomerAddress" required placeholder="المدينة، الحي، الشارع...">
+                </div>
+                <button type="submit" id="cartSubmitBtn" class="submit-order-btn" disabled>إرسال طلب السلة <i class="fab fa-whatsapp"></i></button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">تم إضافة المنتج للسلة بنجاح <i class="fas fa-check-circle"></i></div>
+
+    <!-- Footer / Contact Section -->
+    <footer id="contact" class="footer">
+        <div class="footer-container">
+            <!-- Right side (Branding & Contact) -->
+            <div class="footer-brand">
+                <h2>عالم المرأة</h2>
+                <p class="slogan">وجهتك الأولى لكل ما يخص جمالك وأناقتك.</p>
+                <div class="contact-info-clean">
+                    <span>للتواصل:</span>
+                    <a href="https://wa.me/967778540339" target="_blank" dir="ltr">967778540339</a>
+                </div>
+            </div>
+
+            <!-- Left side (Social Links) -->
+            <div class="footer-social">
+                <h3>تابعونا</h3>
+                <div class="social-links">
+                    <a href="#" aria-label="انستغرام"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="سناب شات"><i class="fab fa-snapchat-ghost"></i></a>
+                    <a href="#" aria-label="تيك توك"><i class="fab fa-tiktok"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
