@@ -406,8 +406,7 @@ window.submitOrder = function(event) {
         const totalPrice = numericPrice * parseInt(qty);
         
         // Construct the WhatsApp message exactly as requested
-        const targetPhone1 = "967780304833";
-        const targetPhone2 = "967778540339";
+        const targetPhone = "967778540339";
         const message = `مرحباً، أود طلب هذا المنتج:%0A%0Aرقم المنتج: ${product.id}%0Aاسم المنتج: ${product.name}%0Aالكمية: ${qty}%0Aسعر الطلب: ${totalPrice} ر.س%0A%0A%0Aبيانات العميل:%0Aالاسم: ${name}%0Aرقم الهاتف: ${phone}%0Aالعنوان: ${address}`;
         
         // Save order to Google Sheets
@@ -424,13 +423,8 @@ window.submitOrder = function(event) {
             body: JSON.stringify(orderData)
         }).catch(err => console.error("Error saving order", err));
         
-        // Open WhatsApp in a new tab for the first number
-        window.open(`https://wa.me/${targetPhone1}?text=${message}`, '_blank');
-        
-        // Open WhatsApp in a new tab for the second number
-        setTimeout(() => {
-            window.open(`https://wa.me/${targetPhone2}?text=${message}`, '_blank');
-        }, 500);
+        // Open WhatsApp in a new tab
+        window.open(`https://wa.me/${targetPhone}?text=${message}`, '_blank');
         
         // Close modal and reset form
         closeModal();
@@ -568,13 +562,10 @@ window.submitCartOrder = function(event) {
             body: JSON.stringify(orderData)
         }).catch(err => console.error("Error saving order", err));
         
-        const targetPhone1 = "967780304833";
-        const targetPhone2 = "967778540339";
+        const targetPhone = "967778540339";
         
-        window.open(`https://wa.me/${targetPhone1}?text=${messageText}`, '_blank');
-        setTimeout(() => {
-            window.open(`https://wa.me/${targetPhone2}?text=${messageText}`, '_blank');
-        }, 500);
+        // Open WhatsApp in a new tab
+        window.open(`https://wa.me/${targetPhone}?text=${messageText}`, '_blank');
         
         // Reset Cart
         cartItems = [];

@@ -1189,10 +1189,12 @@ body {
     }
     .logo {
         flex: 1 1 50%;
+        order: 1;
     }
     .nav-icons {
         flex: 1 1 50%;
         justify-content: flex-end;
+        order: 2;
     }
     .nav-links {
         flex: 1 1 100%;
@@ -1200,6 +1202,7 @@ body {
         margin-top: 1rem;
         gap: 1rem;
         font-size: 0.95rem;
+        order: 3;
     }
 
     /* Hero Section Adjustments */
