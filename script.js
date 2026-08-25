@@ -31,6 +31,10 @@ async function fetchProductsFromSheet() {
                 return row.c[index].f ? row.c[index].f : row.c[index].v;
             };
             
+            const rawImages = getVal(6) ? String(getVal(6)) : '';
+            const imagesArray = rawImages.split(/[,\n]+/).map(url => url.trim()).filter(url => url);
+            const mainImage = imagesArray.length > 0 ? imagesArray[0] : '';
+            
             return {
                 id: getVal(0),
                 name: getVal(1),
@@ -38,7 +42,8 @@ async function fetchProductsFromSheet() {
                 categoryName: getVal(3),
                 price: getVal(4),
                 desc: getVal(5),
-                image: getVal(6)
+                image: mainImage,
+                images: imagesArray
             };
         }).filter(p => p.id && p.name && String(p.id).toLowerCase() !== 'id'); // Filter out empty rows
         
@@ -140,11 +145,32 @@ function renderProducts(filter = 'all', append = false) {
         const productsToShow = filteredProducts.slice(append ? currentDisplayedCount - ITEMS_PER_PAGE : 0, currentDisplayedCount);
         
         productsToShow.forEach(product => {
+            let imageHtml = '';
+            if (product.images && product.images.length > 1) {
+                const imgTags = product.images.map((imgUrl, idx) => 
+                    `<img src="${imgUrl}" alt="${product.name}" class="product-image slide-${idx} ${idx === 0 ? 'active' : 'hidden'}">`
+                ).join('');
+                
+                imageHtml = `
+                    <div class="product-slider" data-current="0" data-total="${product.images.length}">
+                        ${imgTags}
+                        <div class="slider-arrow right-arrow" onclick="changeSlide(event, '${product.id}', 1)">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                        <div class="slider-arrow left-arrow" onclick="changeSlide(event, '${product.id}', -1)">
+                            <i class="fas fa-chevron-left"></i>
+                        </div>
+                    </div>
+                `;
+            } else {
+                imageHtml = `<img src="${product.image}" alt="${product.name}" class="product-image">`;
+            }
+
             const card = document.createElement('div');
             card.className = 'product-card';
             card.innerHTML = `
-                <div class="product-image-container">
-                    <img src="${product.image}" alt="${product.name}" class="product-image">
+                <div class="product-image-container" id="slider-container-${product.id}">
+                    ${imageHtml}
                 </div>
                 <div class="product-favorite ${favItems.includes(product.id) ? 'active' : ''}" data-id="${product.id}" onclick="toggleFavorite(this, '${product.id}')" aria-label="إضافة المنتج للمفضلة" title="إضافة المنتج للمفضلة">
                     <i class="fas fa-heart"></i>
@@ -222,6 +248,28 @@ window.addToCart = function(btnElement, productId) {
         btnElement.style.background = '';
         btnElement.style.color = '';
     }, 1000);
+};
+
+window.changeSlide = function(event, productId, direction) {
+    event.stopPropagation();
+    const container = document.getElementById(`slider-container-${productId}`);
+    if (!container) return;
+    const slider = container.querySelector('.product-slider');
+    if (!slider) return;
+    
+    let current = parseInt(slider.getAttribute('data-current'));
+    const total = parseInt(slider.getAttribute('data-total'));
+    
+    const images = slider.querySelectorAll('.product-image');
+    images[current].classList.remove('active');
+    images[current].classList.add('hidden');
+    
+    current = (current + direction + total) % total;
+    
+    images[current].classList.remove('hidden');
+    images[current].classList.add('active');
+    
+    slider.setAttribute('data-current', current);
 };
 
 function updateCartBadge() {
@@ -400,6 +448,18 @@ window.submitOrder = function(event) {
     // Find the product to get its name and price
     const product = products.find(p => p.id == productId);
     
+    const nameWords = name.split(/\s+/).filter(word => word.length > 0);
+    if (nameWords.length < 3) {
+        alert("يرجى إدخال الاسم الثلاثي على الأقل لتأكيد الطلب.");
+        return;
+    }
+    
+    const addressWords = address.split(/\s+/).filter(word => word.length > 0);
+    if (addressWords.length < 2) {
+        alert("يرجى إدخال العنوان بالتفصيل (كلمتين على الأقل) لتأكيد الطلب.");
+        return;
+    }
+    
     if (name && phone && address && product) {
         // Calculate total price for the message
         const numericPrice = parseFloat(product.price.replace(/[^0-9.]/g, ''));
@@ -531,6 +591,18 @@ window.submitCartOrder = function(event) {
     const address = document.getElementById('cartCustomerAddress').value.trim();
     
     if (cartItems.length === 0) return;
+    
+    const nameWords = name.split(/\s+/).filter(word => word.length > 0);
+    if (nameWords.length < 3) {
+        alert("يرجى إدخال الاسم الثلاثي على الأقل لتأكيد الطلب.");
+        return;
+    }
+    
+    const addressWords = address.split(/\s+/).filter(word => word.length > 0);
+    if (addressWords.length < 2) {
+        alert("يرجى إدخال العنوان بالتفصيل (كلمتين على الأقل) لتأكيد الطلب.");
+        return;
+    }
     
     if (name && phone && address) {
         let messageText = 'مرحباً، أود طلب هذه المنتجات:%0A%0A';
