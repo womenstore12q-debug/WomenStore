@@ -1321,3 +1321,16 @@ body {
 .slider-arrow.right-arrow {
     right: 10px;
 }
+/* Fix for FontAwesome on mobile */
+i.fas, i.fab, i.far, .fas, .fab, .far {
+    font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;
+    font-style: normal !important;
+    font-weight: 900 !important;
+    font-variant: normal !important;
+    text-rendering: auto !important;
+    line-height: 1 !important;
+}
+i.fab, .fab {
+    font-family: "Font Awesome 6 Brands" !important;
+    font-weight: 400 !important;
+}
