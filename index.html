@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
@@ -166,6 +166,48 @@
         </div>
     </div>
 
+    <!-- Reviews Modal -->
+    <div id="reviewsModal" class="modal">
+        <div class="modal-content reviews-modal-content">
+            <span class="close-modal" onclick="closeReviewModal()">&times;</span>
+            <h2>آراء العملاء</h2>
+            <p id="modalReviewProductName" class="modal-product-name"></p>
+            
+            <div class="add-review-section">
+                <h3>أضف رأيك</h3>
+                <form id="addReviewForm" onsubmit="submitReview(event)">
+                    <input type="hidden" id="reviewProductId">
+                    <div class="form-group">
+                        <input type="text" id="reviewerName" placeholder="اسمك الكريم (اختياري)">
+                    </div>
+                    <div class="form-group rating-input-group">
+                        <label>تقييمك للمنتج:</label>
+                        <div class="star-rating-input" id="starRatingInput">
+                            <i class="fas fa-star active" data-rating="1" onclick="setRating(1)"></i>
+                            <i class="fas fa-star active" data-rating="2" onclick="setRating(2)"></i>
+                            <i class="fas fa-star active" data-rating="3" onclick="setRating(3)"></i>
+                            <i class="fas fa-star active" data-rating="4" onclick="setRating(4)"></i>
+                            <i class="fas fa-star active" data-rating="5" onclick="setRating(5)"></i>
+                        </div>
+                        <input type="hidden" id="reviewRating" value="5">
+                    </div>
+                    <div class="form-group">
+                        <textarea id="reviewText" required placeholder="ما رأيك في هذا المنتج؟..." rows="3" class="review-textarea"></textarea>
+                    </div>
+                    <button type="submit" class="submit-order-btn" style="background-color: var(--primary);">إرسال الرأي <i class="fas fa-paper-plane"></i></button>
+                </form>
+            </div>
+
+            <div class="reviews-list-container">
+                <h3>الآراء السابقة</h3>
+                <div id="reviewsList" class="reviews-list">
+                    <!-- Reviews will be loaded here dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
     <!-- Toast Notification -->
     <div id="toast" class="toast">تم إضافة المنتج للسلة بنجاح <i class="fas fa-check-circle"></i></div>
 

@@ -1,4 +1,4 @@
-let products = [];
+﻿let products = [];
 // ضع معرّف جدول بيانات جوجل الخاص بك هنا (Spreadsheet ID)
 // مثلاً إذا كان الرابط: https://docs.google.com/spreadsheets/d/1A2B3C4D5E6F/edit
 // فالمعرف هو: 1A2B3C4D5E6F
@@ -51,6 +51,7 @@ async function fetchProductsFromSheet() {
         if (loadingEl) loadingEl.style.display = 'none';
         renderCategories();
         renderProducts();
+        fetchReviewsFromSheet();
     } catch (error) {
         console.error('Error fetching products:', error);
         if (loadingEl) loadingEl.innerHTML = '<p style="color:red; font-size:1.1rem; line-height:1.6;">حدث خطأ أثناء تحميل المنتجات. تأكد من صحة الرابط وأن الملف متاح للجميع (Anyone with the link).</p>';
@@ -66,7 +67,7 @@ const cartCountElement = document.querySelector('.cart-count');
 let cartCount = 0;
 
 let favItems = JSON.parse(localStorage.getItem('favItems')) || [];
-const ORDERS_API_URL = "https://script.google.com/macros/s/AKfycbyshJE4mX29mhSTNn3jd8TDOZwTgJD3Wf_SCS6e89e_Lq9aqJpopHXNl8knqsC93ObYtA/exec";
+const ORDERS_API_URL = "https://script.google.com/macros/s/AKfycbyMab8vi_Q7-FhkQ0FGo5EriSTlokQJ1gNL9FHdM084GhcHrc4rzhkTCX9D-pbu5xRfWQ/exec";
 const favCountElement = document.querySelector('.fav-count');
 
 // Pagination logic
@@ -182,12 +183,15 @@ function renderProducts(filter = 'all', append = false) {
                     <div class="product-price-container">
                         <span class="product-price">${product.price}</span>
                     </div>
-                    <div class="product-actions">
+                                        <div class="product-actions">
                         <button class="btn-cart" onclick="addToCart(this, '${product.id}')" aria-label="أضف للسلة">
                             إضافة للسلة <i class="fas fa-cart-plus"></i>
                         </button>
-                        <button class="btn-order" onclick="openOrderModal('${product.id}', '${product.name}', '${product.price}')" aria-label="طلب المنتج">
-                            طلب المنتج <i class="fab fa-whatsapp"></i>
+                        <button class="btn-order" onclick="openOrderModal('${product.id}', '${product.name}', '${product.price}')" aria-label="طلب منتج">
+                            طلب منتج <i class="fab fa-whatsapp"></i>
+                        </button>
+                        <button class="btn-review" onclick="openReviewModal('${product.id}', '${product.name.replace("'", "\\'")}')" aria-label="تقييم">
+                            تقييم <i class="fas fa-star"></i>
                         </button>
                     </div>
                 </div>
@@ -659,3 +663,178 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 5000);
     }
 });
+
+
+// Reviews Logic
+let productReviews = JSON.parse(localStorage.getItem('productReviews')) || {};
+
+const reviewsModal = document.getElementById('reviewsModal');
+const reviewsList = document.getElementById('reviewsList');
+const modalReviewProductName = document.getElementById('modalReviewProductName');
+const reviewProductIdInput = document.getElementById('reviewProductId');
+
+window.openReviewModal = function(productId, productName) {
+    reviewProductIdInput.value = productId;
+    modalReviewProductName.textContent = productName;
+    renderReviews(productId);
+    reviewsModal.classList.add('show');
+    
+    // Reset stars to 5
+    document.getElementById('reviewRating').value = 5;
+    document.querySelectorAll('.star-rating-input i').forEach(s => {
+        s.classList.add('active');
+        s.classList.remove('far');
+        s.classList.add('fas');
+    });
+};
+
+window.closeReviewModal = function() {
+    reviewsModal.classList.remove('show');
+    document.getElementById('addReviewForm').reset();
+};
+
+window.renderReviews = function(productId) {
+    reviewsList.innerHTML = '';
+    const reviews = productReviews[productId] || [];
+    
+    if (reviews.length === 0) {
+        reviewsList.innerHTML = '<p class="no-reviews">لا توجد آراء لهذا المنتج بعد. كن أول من يضيف رأيه!</p>';
+        return;
+    }
+    
+    reviews.forEach(review => {
+        let starsHtml = '';
+        const rating = review.rating || 5;
+        for (let i = 1; i <= 5; i++) {
+            if (i <= rating) {
+                starsHtml += '<i class="fas fa-star"></i>';
+            } else {
+                starsHtml += '<i class="far fa-star"></i>';
+            }
+        }
+
+        const reviewEl = document.createElement('div');
+        reviewEl.className = 'review-item';
+        reviewEl.innerHTML = `
+            <div class="review-header">
+                <span class="reviewer-name"><i class="fas fa-user-circle"></i> ${review.name}</span>
+                <span class="review-stars">
+                    ${starsHtml}
+                </span>
+            </div>
+            <div class="review-text">${review.text}</div>
+        `;
+        reviewsList.appendChild(reviewEl);
+    });
+};
+
+window.submitReview = function(event) {
+    event.preventDefault();
+    const productId = reviewProductIdInput.value;
+    let name = document.getElementById('reviewerName').value.trim();
+    const text = document.getElementById('reviewText').value.trim();
+    const rating = parseInt(document.getElementById('reviewRating').value) || 5;
+    
+    if (!name) name = "مجهول";
+    
+    if (text) {
+        if (!productReviews[productId]) {
+            productReviews[productId] = [];
+        }
+        
+        productReviews[productId].unshift({
+            name: name,
+            text: text,
+            rating: rating,
+            date: new Date().toISOString()
+        });
+        
+        localStorage.setItem('productReviews', JSON.stringify(productReviews));
+        
+        // Save review to Google Sheets
+        const reviewData = {
+            action: "review",
+            productId: productId,
+            productName: modalReviewProductName.textContent,
+            reviewerName: name,
+            rating: rating,
+            reviewText: text
+        };
+        fetch(ORDERS_API_URL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify(reviewData)
+        }).catch(err => console.error("Error saving review", err));
+        
+        document.getElementById('addReviewForm').reset();
+        
+        // Reset stars
+        document.getElementById('reviewRating').value = 5;
+        document.querySelectorAll('.star-rating-input i').forEach(s => {
+            s.classList.add('active');
+            s.classList.remove('far');
+            s.classList.add('fas');
+        });
+
+        renderReviews(productId);
+        
+        // Show success animation or toast
+        const submitBtn = document.querySelector('#addReviewForm .submit-order-btn');
+        const originalHtml = submitBtn.innerHTML;
+        submitBtn.innerHTML = 'تم الإرسال بنجاح <i class="fas fa-check"></i>';
+        submitBtn.style.backgroundColor = '#25D366';
+        
+        setTimeout(() => {
+            submitBtn.innerHTML = originalHtml;
+            submitBtn.style.backgroundColor = 'var(--primary)';
+        }, 2000);
+    }
+};
+
+
+// Add Star Rating Logic (Explicit Function for reliability)
+window.setRating = function(rating) {
+    document.getElementById('reviewRating').value = rating;
+    const stars = document.querySelectorAll('#starRatingInput i');
+    stars.forEach(s => {
+        const sRating = parseInt(s.getAttribute('data-rating'));
+        if (sRating <= rating) {
+            s.classList.add('active');
+            s.classList.remove('far');
+            s.classList.add('fas');
+        } else {
+            s.classList.remove('active');
+            s.classList.remove('fas');
+            s.classList.add('far');
+        }
+    });
+};
+
+
+async function fetchReviewsFromSheet() {
+    if (SHEET_ID === 'YOUR_SHEET_ID_HERE') return;
+    const url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:json&sheet=Reviews';
+    try {
+        const response = await fetch(url);
+        const text = await response.text();
+        const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+        const data = JSON.parse(jsonString);
+        
+        productReviews = {};
+        data.table.rows.forEach(row => {
+            if(row.c[1] && row.c[1].v) { // Product ID
+                const pId = row.c[1].v.toString();
+                if(!productReviews[pId]) productReviews[pId] = [];
+                productReviews[pId].push({
+                    date: row.c[0] ? (row.c[0].f || row.c[0].v) : '',
+                    name: row.c[3] ? row.c[3].v : 'مجهول',
+                    rating: row.c[4] ? parseInt(row.c[4].v) : 5,
+                    text: row.c[5] ? row.c[5].v : ''
+                });
+            }
+        });
+        localStorage.setItem('productReviews', JSON.stringify(productReviews));
+    } catch (error) {
+        console.error('Error fetching reviews:', error);
+    }
+}
