@@ -65,6 +65,7 @@ let filterBtns = [];
 let cartItems = [];
 const cartCountElement = document.querySelector('.cart-count');
 let cartCount = 0;
+const YER_EXCHANGE_RATE = 420;     // متغير يتم فيه تخزين قيمة الصرف المطلوبة للريال السعودي بما يقابله من الريال اليمني
 
 let favItems = JSON.parse(localStorage.getItem('favItems')) || [];
 const ORDERS_API_URL = "https://script.google.com/macros/s/AKfycbyMab8vi_Q7-FhkQ0FGo5EriSTlokQJ1gNL9FHdM084GhcHrc4rzhkTCX9D-pbu5xRfWQ/exec";
@@ -181,7 +182,8 @@ function renderProducts(filter = 'all', append = false) {
                     <h3 class="product-title">${product.name}</h3>
                     <p class="product-desc">${product.desc}</p>
                     <div class="product-price-container">
-                        <span class="product-price">${product.price}</span>
+                        <span class="product-price">${product.price} ر.س</span>
+                        <span class="product-price-yer" style="display:block; font-size:0.85rem; color:#888; margin-top:4px;">(${(parseFloat(`${product.price}`.replace(/[^0-9.]/g, '')) * YER_EXCHANGE_RATE).toLocaleString('en-US')} ر.ي)</span>
                     </div>
                                         <div class="product-actions">
                         <button class="btn-cart" onclick="addToCart(this, '${product.id}')" aria-label="أضف للسلة">
@@ -352,7 +354,7 @@ window.renderFavItems = function() {
                 <img src="${product.image}" alt="${product.name}" class="fav-item-img">
                 <div class="fav-item-details">
                     <h4>${product.name}</h4>
-                    <div class="fav-item-price">${product.price}</div>
+                    <div class="fav-item-price">${product.price} ر.س <span style="font-size:0.8rem; color:#888;">(${(parseFloat(product.price.replace(/[^0-9.]/g, '')) * YER_EXCHANGE_RATE).toLocaleString('en-US')} ر.ي)</span></div>
                 </div>
             </div>
             <div class="fav-item-actions">
@@ -424,11 +426,49 @@ window.openOrderModal = function(id, name, priceStr) {
     modal.classList.add('show');
 };
 
+window.toggleDeliveryOptions = function(type) {
+    const inputs = document.getElementsByName(type === 'order' ? 'deliveryMethod' : 'cartDeliveryMethod');
+    let selected = '';
+    for(let i of inputs) if(i.checked) selected = i.value;
+    
+    const pInfo = document.getElementById('pickupInfo_' + type);
+    const dInfo = document.getElementById('deliveryInfo_' + type);
+    if (selected === 'pickup') {
+        if(pInfo) pInfo.classList.remove('hidden');
+        if(dInfo) dInfo.classList.add('hidden');
+    } else if (selected === 'delivery') {
+        if(pInfo) pInfo.classList.add('hidden');
+        if(dInfo) dInfo.classList.remove('hidden');
+    }
+    if (type === 'order') calculateTotal();
+    else calculateCartTotal();
+};
+
 window.calculateTotal = function() {
     const qty = parseInt(productQuantity.value) || 1;
     const price = parseFloat(modalRawPrice.value) || 0;
-    const total = qty * price;
-    modalTotalPrice.textContent = total + " ر.س";
+    
+    let isDelivery = false;
+    const inputs = document.getElementsByName('deliveryMethod');
+    for(let i of inputs) if(i.checked && i.value === 'delivery') isDelivery = true;
+    
+    let fee = 0;
+    if (isDelivery) {
+        const area = document.getElementById('deliveryArea');
+        if (area && area.options[area.selectedIndex]) {
+            fee = parseFloat(area.options[area.selectedIndex].getAttribute('data-fee')) || 0;
+        }
+    }
+    
+    const productsTotalSAR = qty * price;
+    let html = productsTotalSAR + " ر.س <span style='font-size:0.85rem; color:#888; display:block; margin-top:4px;'>(" + (productsTotalSAR * YER_EXCHANGE_RATE).toLocaleString('en-US') + " ر.ي)</span>";
+    
+    if (fee > 0) {
+        const feeYER = (fee * YER_EXCHANGE_RATE).toLocaleString('en-US');
+        html += `<div style="font-size:0.9rem; color:#d63384; margin-top:8px; font-weight:bold;">+ التوصيل: ${feeYER} ر.ي</div>`;
+    }
+    
+    modalTotalPrice.innerHTML = html;
 };
 
 window.closeModal = function() {
@@ -437,62 +477,69 @@ window.closeModal = function() {
 };
 
 window.submitOrder = function(event) {
-    event.preventDefault(); // Prevent form from submitting normally
-    
+    event.preventDefault();
     const name = document.getElementById('customerName').value.trim();
+    const phone = document.getElementById('customerPhone').value.trim();
+    const qty = document.getElementById('productQuantity').value;
+    const product = products.find(p => p.id == modalProductId.value);
+    
     if (name.split(/\s+/).length < 2) {
         alert("يرجى ادخال اسمك الكريم كاملاً لتسهيل توصيل الطلب");
         return;
     }
-    const address = document.getElementById('customerAddress').value.trim();
-    const phone = document.getElementById('customerPhone').value.trim();
-    const productId = modalProductId.value;
-    const qty = document.getElementById('productQuantity').value;
+    if (!product) return;
     
-    // Find the product to get its name and price
-    const product = products.find(p => p.id == productId);
+    let isDelivery = false;
+    let selectedMethod = '';
+    const inputs = document.getElementsByName('deliveryMethod');
+    for(let i of inputs) if(i.checked) selectedMethod = i.value;
     
-    const nameWords = name.split(/\s+/).filter(word => word.length > 0);
-    if (nameWords.length < 3) {
-        alert("يرجى إدخال الاسم الثلاثي على الأقل لتأكيد الطلب.");
+    if (!selectedMethod) {
+        alert("يرجى اختيار طريقة الاستلام");
         return;
     }
     
-    const addressWords = address.split(/\s+/).filter(word => word.length > 0);
-    if (addressWords.length < 2) {
-        alert("يرجى إدخال العنوان بالتفصيل (كلمتين على الأقل) لتأكيد الطلب.");
-        return;
+    isDelivery = selectedMethod === 'delivery';
+    
+    let areaText = '';
+    let mapsLink = '';
+    let fee = 0;
+    
+    if (isDelivery) {
+        const area = document.getElementById('deliveryArea');
+        if (!area.value) {
+            alert("يرجى اختيار المنطقة");
+            return;
+        }
+        areaText = area.value;
+        fee = parseFloat(area.options[area.selectedIndex].getAttribute('data-fee')) || 0;
+        mapsLink = document.getElementById('googleMapsLink').value.trim();
+        if(!mapsLink) {
+            alert("يرجى تحديد الموقع عبر خرائط جوجل");
+            return;
+        }
     }
     
-    if (name && phone && address && product) {
-        // Calculate total price for the message
-        const numericPrice = parseFloat(product.price.replace(/[^0-9.]/g, ''));
-        const totalPrice = numericPrice * parseInt(qty);
-        
-        // Construct the WhatsApp message exactly as requested
-        const targetPhone = "967778540339";
-        const message = `مرحباً، أود طلب هذا المنتج:%0A%0Aرقم المنتج: ${product.id}%0Aاسم المنتج: ${product.name}%0Aالكمية: ${qty}%0Aسعر الطلب: ${totalPrice} ر.س%0A%0A%0Aبيانات العميل:%0Aالاسم: ${name}%0Aرقم الهاتف: ${phone}%0Aالعنوان: ${address}`;
-        
-        // Save order to Google Sheets
-        const orderData = {
-            customerName: name,
-            phone: phone,
-            address: address,
-            orderDetails: `المنتج: ${product.name} (رقم: ${product.id}) - الكمية: ${qty}`,
-            totalPrice: `${totalPrice} ر.س`
-        };
-        fetch(ORDERS_API_URL, {
-            method: "POST",
-            mode: "no-cors",
-            body: JSON.stringify(orderData)
-        }).catch(err => console.error("Error saving order", err));
-        
-        // Open WhatsApp in a new tab
-        window.open(`https://wa.me/${targetPhone}?text=${message}`, '_blank');
-        
-        // Close modal and reset form
-        closeModal();
-    }
+    const numericPrice = parseFloat(product.price.replace(/[^0-9.]/g, ''));
+    const total = (numericPrice * parseInt(qty)) + fee;
+    
+    let methodText = isDelivery ? 'توصيل للبيت' : 'عبر النقطة';
+    let addressInfo = isDelivery ? `\nالمنطقة: ${areaText}\nرسوم التوصيل: ${fee} ر.س\nرابط خرائط جوجل: ${mapsLink}` : '';
+    
+    const targetPhone = "967778540339";
+    const message = `مرحباً، أود طلب هذا المنتج:%0A%0Aرقم المنتج: ${product.id}%0Aاسم المنتج: ${product.name}%0Aالكمية: ${qty}%0Aسعر الطلب: ${total} ر.س%0A%0Aبيانات العميل:%0Aالاسم: ${name}%0Aرقم الهاتف: ${phone}%0Aطريقة الاستلام: ${methodText}${addressInfo.replace(/\n/g, '%0A')}`;
+    
+    const orderData = {
+        customerName: name,
+        phone: phone,
+        address: isDelivery ? areaText + " (خرائط: " + mapsLink + ")" : "استلام عبر النقطة",
+        orderDetails: `المنتج: ${product.name} (رقم: ${product.id}) - الكمية: ${qty}`,
+        totalPrice: `${total} ر.س`
+    };
+    
+    fetch(ORDERS_API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(orderData) }).catch(e => console.error(e));
+    window.open(`https://wa.me/${targetPhone}?text=${message}`, '_blank');
+    closeModal();
 };
 
 // Close modal if user clicks outside of it
@@ -547,7 +594,7 @@ window.renderCartItems = function() {
                 <img src="${item.image}" alt="${item.name}" class="cart-item-img">
                 <div class="cart-item-details">
                     <h4>${item.name}</h4>
-                    <div class="cart-item-price">${item.price}</div>
+                    <div class="cart-item-price">${item.price} ر.س <span style="font-size:0.8rem; color:#888;">(${(parseFloat(item.price.replace(/[^0-9.]/g, '')) * YER_EXCHANGE_RATE).toLocaleString('en-US')} ر.ي)</span></div>
                 </div>
             </div>
             <div class="cart-item-actions">
@@ -564,7 +611,32 @@ window.renderCartItems = function() {
         cartItemsContainer.appendChild(itemEl);
     });
     
-    cartTotalPriceEl.textContent = total + ' ر.س';
+    calculateCartTotal();
+};
+
+window.calculateCartTotal = function() {
+    let total = 0;
+    cartItems.forEach(item => {
+        const itemPrice = parseFloat(item.price.replace(/[^0-9.]/g, '')) || 0;
+        total += itemPrice * item.qty;
+    });
+    
+    let isDelivery = false;
+    const inputs = document.getElementsByName('cartDeliveryMethod');
+    for(let i of inputs) if(i.checked && i.value === 'delivery') isDelivery = true;
+    
+    let fee = 0;
+    if (isDelivery) {
+        const area = document.getElementById('cartDeliveryArea');
+        if (area && area.options[area.selectedIndex]) {
+            fee = parseFloat(area.options[area.selectedIndex].getAttribute('data-fee')) || 0;
+        }
+    }
+    total += fee;
+    
+    if (cartTotalPriceEl) {
+        cartTotalPriceEl.innerHTML = total + " ر.س <span style='font-size:0.85rem; color:#888;'>(" + (total * YER_EXCHANGE_RATE).toLocaleString('en-US') + " ر.ي)</span>";
+    }
 };
 
 window.updateCartItemQty = function(index, change) {
@@ -838,3 +910,60 @@ async function fetchReviewsFromSheet() {
         console.error('Error fetching reviews:', error);
     }
 }
+
+window.getCurrentLocation = function(inputId, btnElement) {
+    const originalText = btnElement.innerHTML;
+    btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحديد...';
+    btnElement.disabled = true;
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                const mapLink = `https://www.google.com/maps?q=${lat},${lng}`;
+                document.getElementById(inputId).value = mapLink;
+                
+                btnElement.innerHTML = '<i class="fas fa-check"></i> تم التحديد';
+                btnElement.classList.add('success-btn');
+                btnElement.style.backgroundColor = '#28a745';
+                btnElement.style.color = 'white';
+                
+                setTimeout(() => {
+                    btnElement.innerHTML = originalText;
+                    btnElement.disabled = false;
+                    btnElement.classList.remove('success-btn');
+                    btnElement.style.backgroundColor = '';
+                    btnElement.style.color = '';
+                }, 3000);
+            },
+            (error) => {
+                console.error("Error getting location:", error);
+                alert("تعذر الحصول على الموقع. يرجى التأكد من تفعيل خدمة الموقع (GPS) في جهازك والموافقة على الصلاحية.");
+                btnElement.innerHTML = originalText;
+                btnElement.disabled = false;
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    } else {
+        alert("متصفحك لا يدعم خاصية تحديد الموقع الجغرافي.");
+        btnElement.innerHTML = originalText;
+        btnElement.disabled = false;
+    }
+};
+
+// Update delivery option texts to include YER
+function updateDeliveryOptionsPrices() {
+    const selects = document.querySelectorAll('.delivery-select');
+    selects.forEach(select => {
+        Array.from(select.options).forEach(option => {
+            const fee = parseFloat(option.getAttribute('data-fee'));
+            if (fee > 0 && !option.text.includes('ر.ي')) {
+                const yerFee = (fee * YER_EXCHANGE_RATE).toLocaleString('en-US');
+                // Remove the "(xx ر.س)" and add the YER fee
+                option.text = option.text.replace(/\(.*?\)/, `(${yerFee} ر.ي)`);
+            }
+        });
+    });
+}
+document.addEventListener('DOMContentLoaded', updateDeliveryOptionsPrices);

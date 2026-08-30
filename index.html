@@ -107,10 +107,60 @@
                     <label for="customerPhone">رقم الهاتف <span class="required">*</span></label>
                     <input type="tel" id="customerPhone" required placeholder="أدخل رقم الهاتف" pattern="[0-9]{9,}" title="يجب إدخال 9 أرقام على الأقل" onkeypress="return event.charCode >= 48 && event.charCode <= 57">
                 </div>
-                <div class="form-group">
-                    <label for="customerAddress">العنوان <span class="required">*</span></label>
-                    <input type="text" id="customerAddress" required placeholder="المدينة، الحي، الشارع...">
-                </div>
+                  <div class="form-group">
+                      <label>طريقة الاستلام <span class="required">*</span></label>
+                      <div class="radio-group">
+                          <label class="radio-label" title="استلام المنتج عبر نقطة المتجر">
+                              <input type="radio" name="deliveryMethod" value="pickup" required onchange="toggleDeliveryOptions('order')">
+                              عبر النقطة
+                          </label>
+                          <label class="radio-label">
+                              <input type="radio" name="deliveryMethod" value="delivery" required onchange="toggleDeliveryOptions('order')">
+                              توصيل للبيت
+                          </label>
+                      </div>
+                  </div>
+                  
+                  <div id="pickupInfo_order" class="delivery-info hidden">
+                      <p class="pickup-address"><i class="fas fa-map-marker-alt"></i> موقع النقطة: سيئون - شارع المطار - بجوار البنك</p>
+                  </div>
+                  
+                  <div id="deliveryInfo_order" class="delivery-info hidden">
+                      <div class="form-group">
+                          <label for="deliveryArea">اختر المنطقة <span class="required">*</span></label>
+                          <select id="deliveryArea" onchange="calculateTotal()" class="delivery-select">
+                              <option value="" data-fee="0" selected disabled>اختر منطقتك...</option>
+                              <option value="حي القرن" data-fee="10">حي القرن (10 ر.س)</option>
+                              <option value="السحيل" data-fee="15">السحيل (15 ر.س)</option>
+                              <option value="تريس" data-fee="20">تريس (20 ر.س)</option>
+                              <option value="الغرفة" data-fee="30">الغرفة (30 ر.س)</option>
+                              <option value="تاربة" data-fee="40">تاربة (40 ر.س)</option>
+                          </select>
+                      </div>
+                        <div class="form-group">
+                            <label for="googleMapsLink">تحديد الموقع بالتحديد عبر خرائط جوجل <span class="required">*</span></label>
+                            <input type="url" id="googleMapsLink" placeholder="ضع رابط موقعك من خرائط جوجل هنا" class="maps-input">
+                            <div class="maps-actions">
+                                <button type="button" class="btn-location" onclick="getCurrentLocation('googleMapsLink', this)"><i class="fas fa-location-arrow"></i> تحديد موقعي الحالي</button>
+                                <a href="https://www.google.com/maps/search/?api=1&query=سيئون,+حضرموت,+اليمن" target="_blank" class="btn-open-maps"><i class="fas fa-map-marked-alt"></i> فتح الخرائط لاختيار موقع</a>
+                            </div>
+                        </div>
+                  </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label>طريقة الدفع <span class="required">*</span></label>
+                        <div class="radio-group" style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <label class="radio-label" style="flex:1;">
+                                <input type="radio" name="paymentMethod" value="bank_transfer" checked>
+                                <span>تحويل بنكي</span>
+                            </label>
+                        </div>
+                        <div class="payment-info" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+                            <p style="margin: 0 0 10px 0; color: #d81b60; font-size: 0.9rem; font-weight: bold;">لإتمام الطلب يرجى دفع مبلغ المنتج كامل او نصفه واتمام كامل الدفع عند الاستلام</p>
+                            <p style="margin: 0; color: #495057; font-size: 0.9rem; line-height: 1.6;"><strong>رقم الحساب البنكي:</strong><br>عمقي: 25#########<br>كريمي: 30#########</p>
+                        </div>
+                    </div>
+
                 <button type="submit" class="submit-order-btn">إرسال الطلب <i class="fab fa-whatsapp"></i></button>
             </form>
         </div>
@@ -157,10 +207,60 @@
                     <label for="cartCustomerPhone">رقم الهاتف <span class="required">*</span></label>
                     <input type="tel" id="cartCustomerPhone" required placeholder="أدخل رقم الهاتف" pattern="[0-9]{9,}" title="يجب إدخال 9 أرقام على الأقل" onkeypress="return event.charCode >= 48 && event.charCode <= 57">
                 </div>
-                <div class="form-group">
-                    <label for="cartCustomerAddress">العنوان <span class="required">*</span></label>
-                    <input type="text" id="cartCustomerAddress" required placeholder="المدينة، الحي، الشارع...">
-                </div>
+                  <div class="form-group">
+                      <label>طريقة الاستلام <span class="required">*</span></label>
+                      <div class="radio-group">
+                          <label class="radio-label" title="استلام المنتج عبر نقطة المتجر">
+                              <input type="radio" name="cartDeliveryMethod" value="pickup" required onchange="toggleDeliveryOptions('cart')">
+                              عبر النقطة
+                          </label>
+                          <label class="radio-label">
+                              <input type="radio" name="cartDeliveryMethod" value="delivery" required onchange="toggleDeliveryOptions('cart')">
+                              توصيل للبيت
+                          </label>
+                      </div>
+                  </div>
+                  
+                  <div id="pickupInfo_cart" class="delivery-info hidden">
+                      <p class="pickup-address"><i class="fas fa-map-marker-alt"></i> موقع النقطة: سيئون - شارع المطار - بجوار البنك</p>
+                  </div>
+                  
+                  <div id="deliveryInfo_cart" class="delivery-info hidden">
+                      <div class="form-group">
+                          <label for="cartDeliveryArea">اختر المنطقة <span class="required">*</span></label>
+                          <select id="cartDeliveryArea" onchange="calculateCartTotal()" class="delivery-select">
+                              <option value="" data-fee="0" selected disabled>اختر منطقتك...</option>
+                              <option value="حي القرن" data-fee="10">حي القرن (10 ر.س)</option>
+                              <option value="السحيل" data-fee="15">السحيل (15 ر.س)</option>
+                              <option value="تريس" data-fee="20">تريس (20 ر.س)</option>
+                              <option value="الغرفة" data-fee="30">الغرفة (30 ر.س)</option>
+                              <option value="تاربة" data-fee="40">تاربة (40 ر.س)</option>
+                          </select>
+                      </div>
+                        <div class="form-group">
+                            <label for="cartGoogleMapsLink">تحديد الموقع بالتحديد عبر خرائط جوجل <span class="required">*</span></label>
+                            <input type="url" id="cartGoogleMapsLink" placeholder="ضع رابط موقعك من خرائط جوجل هنا" class="maps-input">
+                            <div class="maps-actions">
+                                <button type="button" class="btn-location" onclick="getCurrentLocation('cartGoogleMapsLink', this)"><i class="fas fa-location-arrow"></i> تحديد موقعي الحالي</button>
+                                <a href="https://www.google.com/maps/search/?api=1&query=سيئون,+حضرموت,+اليمن" target="_blank" class="btn-open-maps"><i class="fas fa-map-marked-alt"></i> فتح الخرائط لاختيار موقع</a>
+                            </div>
+                        </div>
+                  </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label>طريقة الدفع <span class="required">*</span></label>
+                        <div class="radio-group" style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <label class="radio-label" style="flex:1;">
+                                <input type="radio" name="cartPaymentMethod" value="bank_transfer" checked>
+                                <span>تحويل بنكي</span>
+                            </label>
+                        </div>
+                        <div class="payment-info" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+                            <p style="margin: 0 0 10px 0; color: #d81b60; font-size: 0.9rem; font-weight: bold;">لإتمام الطلب يرجى دفع مبلغ المنتج كامل او نصفه واتمام كامل الدفع عند الاستلام</p>
+                            <p style="margin: 0; color: #495057; font-size: 0.9rem; line-height: 1.6;"><strong>رقم الحساب البنكي:</strong><br>عمقي: 25#########<br>كريمي: 30#########</p>
+                        </div>
+                    </div>
+
                 <button type="submit" id="cartSubmitBtn" class="submit-order-btn" disabled>إرسال طلب السلة <i class="fab fa-whatsapp"></i></button>
             </form>
         </div>
@@ -239,3 +339,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+
