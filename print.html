@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>طباعة قصاصة الطلب</title>
+    <!-- خطوط جوجل (Cairo) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Cairo', Arial, sans-serif; 
+            background: #f4f4f4; 
+            text-align: center; 
+            margin: 0; 
+            padding: 20px; 
+        }
+        .receipt-container {
+            background: #fff;
+            border: 2px dashed #000;
+            padding: 20px;
+            width: 320px;
+            margin: 0 auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .header h1 { 
+            font-size: 22px; 
+            margin: 0; 
+            color: #d63384; 
+            font-weight: 700;
+        }
+        .header p {
+            margin: 5px 0 0;
+            font-size: 13px;
+            color: #666;
+        }
+        .divider {
+            border-top: 1px dashed #ccc;
+            margin: 15px 0;
+        }
+        .details { 
+            text-align: right; 
+            font-size: 14px; 
+            line-height: 1.8; 
+            color: #333;
+        }
+        .details strong { 
+            display: inline-block; 
+            width: 90px; 
+            color: #000;
+        }
+        .qr-section {
+            margin-top: 20px;
+            text-align: center;
+        }
+        #qrcode { 
+            margin: 0 auto; 
+            display: flex; 
+            justify-content: center; 
+            position: relative; 
+            width: 150px; 
+            height: 150px; 
+        }
+        #qrcode img.qr-image { 
+            width: 150px; 
+            height: 150px; 
+        }
+        /* الشعار في منتصف الباركود */
+        .qr-logo { 
+            position: absolute; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            width: 40px; 
+            height: 40px; 
+            background: white; 
+            border-radius: 8px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: bold; 
+            color: #d63384; 
+            font-size: 16px; 
+            border: 2px solid #d63384;
+            box-shadow: 0 0 5px rgba(255,255,255,1);
+        }
+        .scan-hint {
+            font-size: 12px;
+            color: #777;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+        .no-print {
+            margin-bottom: 20px;
+        }
+        .btn-print {
+            background-color: #d63384;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-size: 16px;
+            font-family: 'Cairo', sans-serif;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(214, 51, 132, 0.2);
+            transition: 0.3s;
+        }
+        .btn-print:hover {
+            background-color: #b5256e;
+        }
+
+        /* تنسيقات خاصة عند الطباعة */
+        @media print {
+            body { 
+                background: #fff; 
+                padding: 0; 
+                margin: 0; 
+            }
+            .receipt-container { 
+                border: 1px solid #000; /* إطار عادي بدلاً من متقطع عند الطباعة ليكون أوضح */
+                box-shadow: none;
+                width: 100%;
+                max-width: 300px;
+                margin: 0;
+            }
+            .no-print { 
+                display: none; 
+            }
+        }
+    </style>
+    <!-- استدعاء مكتبة توليد الباركود (QR Code) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <div class="no-print">
+        <button onclick="window.print()" class="btn-print">🖨️ طباعة القصاصة الآن</button>
+        <p style="font-size: 13px; color: #666; margin-top: 10px;">سيتم فتح نافذة الطباعة تلقائياً...</p>
+    </div>
+    
+    <div class="receipt-container">
+        <div class="header">
+            <h1>عالم المرأة</h1>
+            <p>طلب جديد</p>
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="details" id="orderDetails">
+            <!-- سيتم حقن البيانات هنا عبر الجافاسكريبت -->
+            جاري تحميل البيانات...
+        </div>
+        
+        <div class="divider"></div>
+        
+        <div class="qr-section">
+            <div id="qrcode">
+                <!-- سيتم رسم الباركود هنا -->
+            </div>
+            <div class="scan-hint">امسح الباركود لعرض تفاصيل العميل</div>
+        </div>
+    </div>
+
+    <script>
+        // قراءة المتغيرات من رابط الصفحة (URL Parameters)
+        // مثل: print.html?name=أحمد&phone=777&address=القرن&product=حقيبة&total=150
+        const urlParams = new URLSearchParams(window.location.search);
+        const name = urlParams.get('name') || 'غير متوفر';
+        const phone = urlParams.get('phone') || 'غير متوفر';
+        const address = urlParams.get('address') || 'غير متوفر';
+        const product = urlParams.get('product') || 'غير متوفر';
+        const total = urlParams.get('total') || 'غير متوفر';
+        
+        // عرض التفاصيل في القصاصة
+        document.getElementById('orderDetails').innerHTML = `
+            <div><strong>الاسم:</strong> ${name}</div>
+            <div><strong>الهاتف:</strong> <span dir="ltr">${phone}</span></div>
+            <div><strong>الطلب:</strong> ${product}</div>
+            <div><strong>الاستلام:</strong> ${address}</div>
+            <div><strong>المبلغ:</strong> ${total}</div>
+        `;
+        
+        // تجهيز النص الذي سيتم قراءته عند مسح الباركود بالكاميرا
+        const qrData = `عالم المرأة - بيانات الطلب:\nالاسم: ${name}\nالهاتف: ${phone}\nالطلب: ${product}\nالاستلام: ${address}\nالمبلغ: ${total}`;
+        
+        // توليد الباركود
+        new QRCode(document.getElementById("qrcode"), {
+            text: qrData,
+            width: 150,
+            height: 150,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H // مستوى تصحيح عالي لكي يعمل الباركود حتى مع وجود شعار في المنتصف
+        });
+        
+        // إضافة الشعار في منتصف الباركود (تصميم مشابه للصورة المطلوبة)
+        setTimeout(() => {
+            const qrDiv = document.getElementById("qrcode");
+            const logo = document.createElement("div");
+            // رمز يعبر عن "عالم المرأة"
+            logo.innerHTML = 'ع.م';
+            logo.className = "qr-logo";
+            qrDiv.appendChild(logo);
+        }, 100);
+        
+        // فتح نافذة الطباعة تلقائياً بعد ثانية ونصف
+        setTimeout(() => {
+            window.print();
+        }, 1500);
+    </script>
+</body>
+</html>
