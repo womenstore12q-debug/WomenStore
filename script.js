@@ -464,7 +464,7 @@ window.calculateTotal = function() {
     let html = productsTotalSAR + " ر.س <span style='font-size:0.85rem; color:#888; display:block; margin-top:4px;'>(" + (productsTotalSAR * YER_EXCHANGE_RATE).toLocaleString('en-US') + " ر.ي)</span>";
     
     if (fee > 0) {
-        const feeYER = (fee * YER_EXCHANGE_RATE).toLocaleString('en-US');
+        const feeYER = (fee).toLocaleString('en-US');
         html += `<div style="font-size:0.9rem; color:#d63384; margin-top:8px; font-weight:bold;">+ التوصيل: ${feeYER} ر.ي</div>`;
     }
     
@@ -660,55 +660,98 @@ window.submitCartOrder = function(event) {
     
     const name = document.getElementById('cartCustomerName').value.trim();
     if (name.split(/\s+/).length < 2) {
-        alert("يرجى ادخال اسمك الكريم كاملاً لتسهيل توصيل الطلب");
+        alert("يرجى إدخال الاسم الرباعي بشكل صحيح");
         return;
     }
     const phone = document.getElementById('cartCustomerPhone').value.trim();
-    const address = document.getElementById('cartCustomerAddress').value.trim();
     
     if (cartItems.length === 0) return;
     
     const nameWords = name.split(/\s+/).filter(word => word.length > 0);
     if (nameWords.length < 3) {
-        alert("يرجى إدخال الاسم الثلاثي على الأقل لتأكيد الطلب.");
+        alert("يرجى كتابة الاسم الثلاثي على الأقل.");
         return;
     }
     
-    const addressWords = address.split(/\s+/).filter(word => word.length > 0);
-    if (addressWords.length < 2) {
-        alert("يرجى إدخال العنوان بالتفصيل (كلمتين على الأقل) لتأكيد الطلب.");
+    let isDelivery = false;
+    let selectedMethod = '';
+    const inputs = document.getElementsByName('cartDeliveryMethod');
+    for(let i of inputs) if(i.checked) selectedMethod = i.value;
+    
+    if (!selectedMethod) {
+        alert("يرجى اختيار طريقة التوصيل");
         return;
     }
     
-    if (name && phone && address) {
-        let messageText = 'مرحباً، أود طلب هذه المنتجات:%0A%0A';
-        let grandTotal = 0;
+    isDelivery = selectedMethod === 'delivery';
+    
+    let areaText = '';
+    let mapsLink = '';
+    let fee = 0;
+    
+    if (isDelivery) {
+        const area = document.getElementById('cartDeliveryArea');
+        if (!area.value) {
+            alert("يرجى اختيار المنطقة");
+            return;
+        }
+        areaText = area.value;
+        fee = parseFloat(area.options[area.selectedIndex].getAttribute('data-fee')) || 0;
+        mapsLink = document.getElementById('cartGoogleMapsLink').value.trim();
+        if(!mapsLink) {
+            alert("يرجى تحديد الموقع على الخريطة");
+            return;
+        }
+    }
+    
+    if (name && phone) {
+        let messageText = 'مرحباً، أود طلب المنتجات التالية:%0A';
+        let grandTotalSAR = 0;
         
         cartItems.forEach((item, i) => {
             const numericPrice = parseFloat(item.price.replace(/[^0-9.]/g, ''));
             const totalItemPrice = numericPrice * item.qty;
-            grandTotal += totalItemPrice;
+            grandTotalSAR += totalItemPrice;
             
-            messageText += `${i + 1}. ${item.name} - الكمية: ${item.qty} - السعر: ${totalItemPrice} ر.س%0A`;
+            messageText += ` ${i + 1}. ${item.name} - الكمية: ${item.qty} - السعر: ${totalItemPrice} ر.س%0A`;
         });
         
-        messageText += `%0Aالمجموع الكلي: ${grandTotal} ر.س%0A%0A`;
-        messageText += `بيانات العميل:%0Aالاسم: ${name}%0Aرقم الهاتف: ${phone}%0Aالعنوان: ${address}`;
+        messageText += ` المجموع الكلي للمنتجات: ${grandTotalSAR} ر.س%0A`;
+        if (isDelivery) {
+            messageText += ` التوصيل: ${fee} ر.ي%0A`;
+        }
+        messageText += ` معلومات العميل:%0A`;
+        messageText += ` الاسم: ${name}%0A`;
+        messageText += ` رقم الهاتف: ${phone}%0A`;
+        
+        if (isDelivery) {
+            messageText += ` طريقة الاستلام: توصيل للبيت%0A`;
+            messageText += ` المنطقة: ${areaText}%0A`;
+            messageText += `رسوم التوصيل: ${fee} ر.ي%0A`;
+            messageText += ` رابط موقع العميل: ${mapsLink}`;
+        } else {
+            messageText += ` طريقة الاستلام: عبر النقطة`;
+        }
+        
+        let combinedAddress = isDelivery ? `${areaText} - ${mapsLink}` : 'عبر النقطة';
         
         // Save cart order to Google Sheets
         let detailsText = cartItems.map(item => `${item.name} (الكمية: ${item.qty})`).join(' | ');
         const orderData = {
             customerName: name,
             phone: phone,
-            address: address,
+            address: combinedAddress,
             orderDetails: detailsText,
-            totalPrice: `${grandTotal} ر.س`
+            totalPrice: fee > 0 ? `${grandTotalSAR} ر.س + ${fee} ر.ي توصيل\n(${(grandTotalSAR * 420) + fee} ر.ي)` : `${grandTotalSAR} ر.س\n(${(grandTotalSAR * 420) + fee} ر.ي)`
         };
-        fetch(ORDERS_API_URL, {
-            method: "POST",
-            mode: "no-cors",
-            body: JSON.stringify(orderData)
-        }).catch(err => console.error("Error saving order", err));
+        
+        try {
+            fetch(ORDERS_API_URL, {
+                method: "POST",
+                mode: "no-cors",
+                body: JSON.stringify(orderData)
+            }).catch(err => console.error("Error saving order", err));
+        } catch(e) {}
         
         const targetPhone = "967778540339";
         
