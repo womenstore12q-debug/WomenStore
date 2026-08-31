@@ -1,4 +1,4 @@
-﻿let products = [];
+let products = [];
 // ضع معرّف جدول بيانات جوجل الخاص بك هنا (Spreadsheet ID)
 // مثلاً إذا كان الرابط: https://docs.google.com/spreadsheets/d/1A2B3C4D5E6F/edit
 // فالمعرف هو: 1A2B3C4D5E6F
@@ -224,6 +224,7 @@ window.loadMoreProducts = function() {
 
 // Initial fetch and render
 fetchProductsFromSheet();
+fetchDeliveryAreasFromSheet();
 
 // Add to Cart Animation and Logic
 window.addToCart = function(btnElement, productId) {
@@ -615,10 +616,10 @@ window.renderCartItems = function() {
 };
 
 window.calculateCartTotal = function() {
-    let total = 0;
+    let productsTotalSAR = 0;
     cartItems.forEach(item => {
         const itemPrice = parseFloat(item.price.replace(/[^0-9.]/g, '')) || 0;
-        total += itemPrice * item.qty;
+        productsTotalSAR += itemPrice * item.qty;
     });
     
     let isDelivery = false;
@@ -632,10 +633,16 @@ window.calculateCartTotal = function() {
             fee = parseFloat(area.options[area.selectedIndex].getAttribute('data-fee')) || 0;
         }
     }
-    total += fee;
     
     if (cartTotalPriceEl) {
-        cartTotalPriceEl.innerHTML = total + " ر.س <span style='font-size:0.85rem; color:#888;'>(" + (total * YER_EXCHANGE_RATE).toLocaleString('en-US') + " ر.ي)</span>";
+        let html = productsTotalSAR + " ر.س <span style='font-size:0.85rem; color:#888;'>(" + (productsTotalSAR * YER_EXCHANGE_RATE).toLocaleString('en-US') + " ر.ي)</span>";
+        
+        if (fee > 0) {
+            const feeYER = (fee).toLocaleString('en-US');
+            html += `<div style="font-size:0.9rem; color:#d63384; margin-top:8px; font-weight:bold;">+ التوصيل: ${feeYER} ر.ي</div>`;
+        }
+        
+        cartTotalPriceEl.innerHTML = html;
     }
 };
 
@@ -951,6 +958,77 @@ async function fetchReviewsFromSheet() {
         localStorage.setItem('productReviews', JSON.stringify(productReviews));
     } catch (error) {
         console.error('Error fetching reviews:', error);
+    }
+}
+
+
+async function fetchDeliveryAreasFromSheet() {
+    if (SHEET_ID === 'YOUR_SHEET_ID_HERE') return;
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=المناطق`;
+    
+    try {
+        const response = await fetch(url);
+        const text = await response.text();
+        const jsonString = text.substring(47).slice(0, -2);
+        const data = JSON.parse(jsonString);
+        
+        const rows = data.table.rows;
+        
+        const deliveryAreaSelect = document.getElementById('deliveryArea');
+        const cartDeliveryAreaSelect = document.getElementById('cartDeliveryArea');
+        
+        // مسح الخيارات الحالية (ما عدا الخيار الافتراضي)
+        if(deliveryAreaSelect) deliveryAreaSelect.innerHTML = '<option value="" data-fee="0" selected disabled>اختر منطقتك...</option>';
+        if(cartDeliveryAreaSelect) cartDeliveryAreaSelect.innerHTML = '<option value="" data-fee="0" selected disabled>اختر منطقتك...</option>';
+        
+        rows.forEach(row => {
+            const areaName = row.c[0] ? row.c[0].v : '';
+            const areaFee = row.c[1] ? row.c[1].v : 0;
+            
+            if (areaName) {
+                const optionHtml = `<option value="${areaName}" data-fee="${areaFee}">${areaName} (${areaFee} ر.ي)</option>`;
+                if(deliveryAreaSelect) deliveryAreaSelect.insertAdjacentHTML('beforeend', optionHtml);
+                if(cartDeliveryAreaSelect) cartDeliveryAreaSelect.insertAdjacentHTML('beforeend', optionHtml);
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error fetching delivery areas:', error);
+    }
+}
+
+async function fetchDeliveryAreasFromSheet() {
+    if (SHEET_ID === 'YOUR_SHEET_ID_HERE') return;
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=المناطق`;
+    
+    try {
+        const response = await fetch(url);
+        const text = await response.text();
+        const jsonString = text.substring(47).slice(0, -2);
+        const data = JSON.parse(jsonString);
+        
+        const rows = data.table.rows;
+        
+        const deliveryAreaSelect = document.getElementById('deliveryArea');
+        const cartDeliveryAreaSelect = document.getElementById('cartDeliveryArea');
+        
+        // مسح الخيارات الحالية (ما عدا الخيار الافتراضي)
+        if(deliveryAreaSelect) deliveryAreaSelect.innerHTML = '<option value="" data-fee="0" selected disabled>اختر منطقتك...</option>';
+        if(cartDeliveryAreaSelect) cartDeliveryAreaSelect.innerHTML = '<option value="" data-fee="0" selected disabled>اختر منطقتك...</option>';
+        
+        rows.forEach(row => {
+            const areaName = row.c[0] ? row.c[0].v : '';
+            const areaFee = row.c[1] ? row.c[1].v : 0;
+            
+            if (areaName) {
+                const optionHtml = `<option value="${areaName}" data-fee="${areaFee}">${areaName} (${areaFee} ر.ي)</option>`;
+                if(deliveryAreaSelect) deliveryAreaSelect.insertAdjacentHTML('beforeend', optionHtml);
+                if(cartDeliveryAreaSelect) cartDeliveryAreaSelect.insertAdjacentHTML('beforeend', optionHtml);
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error fetching delivery areas:', error);
     }
 }
 
