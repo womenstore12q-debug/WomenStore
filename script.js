@@ -1,4 +1,4 @@
-let products = [];
+﻿let products = [];
 // ضع معرّف جدول بيانات جوجل الخاص بك هنا (Spreadsheet ID)
 // مثلاً إذا كان الرابط: https://docs.google.com/spreadsheets/d/1A2B3C4D5E6F/edit
 // فالمعرف هو: 1A2B3C4D5E6F
