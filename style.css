@@ -1,4 +1,4 @@
-﻿:root {
+:root {
     --primary: #d4a373; /* Soft elegant gold/tan */
     --secondary: #fae1dd; /* Soft pastel pink */
     --accent: #e85d75;
@@ -1221,6 +1221,11 @@ body {
     }
     .hero-content h1 {
         font-size: 2.2rem;
+    }
+    .hero-content p {
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
     }
     .hero-image {
         width: 100%;
