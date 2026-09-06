@@ -1,4 +1,4 @@
-﻿let products = [];
+let products = [];
 // ضع معرّف جدول بيانات جوجل الخاص بك هنا (Spreadsheet ID)
 // مثلاً إذا كان الرابط: https://docs.google.com/spreadsheets/d/1A2B3C4D5E6F/edit
 // فالمعرف هو: 1A2B3C4D5E6F
@@ -526,7 +526,7 @@ window.submitOrder = function(event) {
       const totalYER = (totalSAR * 420) + fee;
       
       let methodText = isDelivery ? 'توصيل للبيت' : 'عبر النقطة';
-      let addressInfo = isDelivery ? `\nالمنطقة: ${areaText}\nرسوم التوصيل: ${fee} ر.ي\nرابط خرائط جوجل: ${mapsLink}` : '';
+      let addressInfo = isDelivery ? `\nالمنطقة: ${areaText}\nرسوم التوصيل: ${fee} ر.ي\nرابط خرائط جوجل: ${mapsLink}` : `\nعمولة النقطة: 500 ر.ي\nالمجموع الكلي بالريال اليمني: ${totalYER + 500} ر.ي`;
       
       const targetPhone = "967778540339";
       const message = `مرحباً، أود طلب هذا المنتج:%0A%0Aرقم المنتج: ${product.id}%0Aاسم المنتج: ${product.name}%0Aالكمية: ${qty}%0Aسعر الطلب: ${totalSAR} ر.س%0Aالمجموع باليمني: ${totalYER} ر.ي%0A%0Aبيانات العميل:%0Aالاسم: ${name}%0Aرقم الهاتف: ${phone}%0Aطريقة الاستلام: ${methodText}${addressInfo.replace(/\n/g, '%0A')}`;
@@ -725,6 +725,7 @@ window.submitCartOrder = function(event) {
         });
         
         messageText += ` المجموع الكلي للمنتجات: ${grandTotalSAR} ر.س%0A`;
+        messageText += ` المجموع باليمني: ${grandTotalSAR * 420} ر.ي%0A`;
         if (isDelivery) {
             messageText += ` التوصيل: ${fee} ر.ي%0A`;
         }
@@ -738,7 +739,9 @@ window.submitCartOrder = function(event) {
             messageText += `رسوم التوصيل: ${fee} ر.ي%0A`;
             messageText += ` رابط موقع العميل: ${mapsLink}`;
         } else {
-            messageText += ` طريقة الاستلام: عبر النقطة`;
+            messageText += ` طريقة الاستلام: عبر النقطة%0A`;
+            messageText += ` عمولة النقطة: 500 ر.ي%0A`;
+            messageText += ` المجموع الكلي بالريال اليمني: ${(grandTotalSAR * 420) + 500} ر.ي`;
         }
         
         let combinedAddress = isDelivery ? `${areaText} - ${mapsLink}` : 'عبر النقطة';
