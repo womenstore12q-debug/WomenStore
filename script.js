@@ -523,20 +523,21 @@ window.submitOrder = function(event) {
     
     const numericPrice = parseFloat(product.price.replace(/[^0-9.]/g, ''));
       const totalSAR = numericPrice * parseInt(qty);
-      const totalYER = (totalSAR * 420) + fee;
+      const totalYER_without_fee = (totalSAR * 420);
       
       let methodText = isDelivery ? 'توصيل للبيت' : 'عبر النقطة';
-      let addressInfo = isDelivery ? `\nالمنطقة: ${areaText}\nرسوم التوصيل: ${fee} ر.ي\nرابط خرائط جوجل: ${mapsLink}` : `\nعمولة النقطة: 500 ر.ي\nالمجموع الكلي بالريال اليمني: ${totalYER + 500} ر.ي`;
+      let addressInfo = isDelivery ? `\nالمنطقة: ${areaText}\nرسوم التوصيل: ${fee} ر.ي\nرابط خرائط جوجل: ${mapsLink}` : `\nعمولة النقطة: 500 ر.ي\nالمجموع الكلي بالريال اليمني: ${totalYER_without_fee + 500} ر.ي`;
       
-      const targetPhone = "967778540339";
-      const message = `مرحباً، أود طلب هذا المنتج:%0A%0Aرقم المنتج: ${product.id}%0Aاسم المنتج: ${product.name}%0Aالكمية: ${qty}%0Aسعر الطلب: ${totalSAR} ر.س%0Aالمجموع باليمني: ${totalYER} ر.ي%0A%0Aبيانات العميل:%0Aالاسم: ${name}%0Aرقم الهاتف: ${phone}%0Aطريقة الاستلام: ${methodText}${addressInfo.replace(/\n/g, '%0A')}`;
+      const targetPhone = "967785644697";
+      let extraFeeMsg = isDelivery ? `%0Aرسوم التوصيل: ${fee} ر.ي` : '';
+      const message = `مرحباً، أود طلب هذا المنتج:%0A%0Aرقم المنتج: ${product.id}%0Aاسم المنتج: ${product.name}%0Aالكمية: ${qty}%0Aسعر الطلب: ${totalSAR} ر.س%0Aالمجموع باليمني: ${totalYER_without_fee} ر.ي${extraFeeMsg}%0Aبيانات العميل:%0Aالاسم: ${name}%0Aرقم الهاتف: ${phone}%0Aطريقة الاستلام: ${methodText}${addressInfo.replace(/\n/g, '%0A')}`;
       
       const orderData = {
           customerName: name,
           phone: phone,
           address: isDelivery ? areaText + " (خرائط: " + mapsLink + ")" : "استلام عبر النقطة",
           orderDetails: `المنتج: ${product.name} (رقم: ${product.id}) - الكمية: ${qty}`,
-          totalPrice: fee > 0 ? `${totalSAR} ر.س + ${fee} ر.ي توصيل\n(${totalYER} ر.ي)` : `${totalSAR} ر.س\n(${totalYER} ر.ي)`
+          totalPrice: fee > 0 ? `${totalSAR} ر.س + ${fee} ر.ي توصيل\n(${totalYER_without_fee + fee} ر.ي)` : `${totalSAR} ر.س\n(${totalYER_without_fee} ر.ي)`
       };
     
     fetch(ORDERS_API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(orderData) }).catch(e => console.error(e));
@@ -764,7 +765,7 @@ window.submitCartOrder = function(event) {
             }).catch(err => console.error("Error saving order", err));
         } catch(e) {}
         
-        const targetPhone = "967778540339";
+        const targetPhone = "967785644697";
         
         // Open WhatsApp in a new tab
         window.open(`https://wa.me/${targetPhone}?text=${messageText}`, '_blank');
