@@ -748,7 +748,7 @@ window.submitCartOrder = function(event) {
         let combinedAddress = isDelivery ? `${areaText} - ${mapsLink}` : 'عبر النقطة';
         
         // Save cart order to Google Sheets
-        let detailsText = cartItems.map(item => `${item.name} (الكمية: ${item.qty})`).join(' | ');
+        let detailsText = cartItems.map(item => `المنتج: ${item.name} (رقم: ${item.id}) - الكمية: ${item.qty}`).join('\n');
         const orderData = {
             customerName: name,
             phone: phone,
