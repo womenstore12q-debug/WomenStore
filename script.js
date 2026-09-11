@@ -68,7 +68,7 @@ let cartCount = 0;
 const YER_EXCHANGE_RATE = 420;     // متغير يتم فيه تخزين قيمة الصرف المطلوبة للريال السعودي بما يقابله من الريال اليمني
 
 let favItems = JSON.parse(localStorage.getItem('favItems')) || [];
-const ORDERS_API_URL = "https://script.google.com/macros/s/AKfycbyMab8vi_Q7-FhkQ0FGo5EriSTlokQJ1gNL9FHdM084GhcHrc4rzhkTCX9D-pbu5xRfWQ/exec";
+const ORDERS_API_URL = "https://script.google.com/macros/s/AKfycbxdjn5E6z6Tf6LT_o7ue9LvjAW1pBQv9YEJ6DpntUQAPPag9jTjhasvJMuHtUaGAMo4xA/exec";
 const favCountElement = document.querySelector('.fav-count');
 
 // Pagination logic
@@ -538,7 +538,7 @@ window.submitOrder = function(event) {
           address: isDelivery ? areaText + " (خرائط: " + mapsLink + ")" : "استلام عبر النقطة",
           orderDetails: `المنتج: ${product.name} (رقم: ${product.id}) - الكمية: ${qty}`,
           totalPrice: fee > 0 ? `${totalSAR} ر.س + ${fee} ر.ي توصيل\n(${totalYER_without_fee} ر.ي)` : `${totalSAR} ر.س\n(${totalYER_without_fee} ر.ي)`,
-          items: [{ id: product.id, qty: parseInt(qty) }]
+          items: [{ id: product.id, name: product.name, qty: parseInt(qty) }]
       };
     
     fetch(ORDERS_API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(orderData) }).catch(e => console.error(e));
@@ -756,7 +756,7 @@ window.submitCartOrder = function(event) {
             address: combinedAddress,
             orderDetails: detailsText,
             totalPrice: fee > 0 ? `${grandTotalSAR} ر.س + ${fee} ر.ي توصيل\n(${grandTotalSAR * 420} ر.ي)` : `${grandTotalSAR} ر.س\n(${grandTotalSAR * 420} ر.ي)`,
-            items: cartItems.map(item => ({ id: item.id, qty: parseInt(item.qty) }))
+            items: cartItems.map(item => ({ id: item.id, name: item.name, qty: parseInt(item.qty) }))
         };
         
         try {
