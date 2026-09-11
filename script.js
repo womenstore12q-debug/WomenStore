@@ -537,7 +537,8 @@ window.submitOrder = function(event) {
           phone: phone,
           address: isDelivery ? areaText + " (خرائط: " + mapsLink + ")" : "استلام عبر النقطة",
           orderDetails: `المنتج: ${product.name} (رقم: ${product.id}) - الكمية: ${qty}`,
-          totalPrice: fee > 0 ? `${totalSAR} ر.س + ${fee} ر.ي توصيل\n(${totalYER_without_fee} ر.ي)` : `${totalSAR} ر.س\n(${totalYER_without_fee} ر.ي)`
+          totalPrice: fee > 0 ? `${totalSAR} ر.س + ${fee} ر.ي توصيل\n(${totalYER_without_fee} ر.ي)` : `${totalSAR} ر.س\n(${totalYER_without_fee} ر.ي)`,
+          items: [{ id: product.id, qty: parseInt(qty) }]
       };
     
     fetch(ORDERS_API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify(orderData) }).catch(e => console.error(e));
@@ -754,7 +755,8 @@ window.submitCartOrder = function(event) {
             phone: phone,
             address: combinedAddress,
             orderDetails: detailsText,
-            totalPrice: fee > 0 ? `${grandTotalSAR} ر.س + ${fee} ر.ي توصيل\n(${grandTotalSAR * 420} ر.ي)` : `${grandTotalSAR} ر.س\n(${grandTotalSAR * 420} ر.ي)`
+            totalPrice: fee > 0 ? `${grandTotalSAR} ر.س + ${fee} ر.ي توصيل\n(${grandTotalSAR * 420} ر.ي)` : `${grandTotalSAR} ر.س\n(${grandTotalSAR * 420} ر.ي)`,
+            items: cartItems.map(item => ({ id: item.id, qty: parseInt(item.qty) }))
         };
         
         try {
