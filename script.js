@@ -526,7 +526,7 @@ window.submitOrder = function(event) {
       const totalYER_without_fee = (totalSAR * 420);
       
       let methodText = isDelivery ? 'توصيل للبيت' : 'عبر النقطة';
-      let addressInfo = isDelivery ? `\nالمنطقة: ${areaText}\nرسوم التوصيل: ${fee} ر.ي\nرابط خرائط جوجل: ${mapsLink}` : `\nعمولة النقطة: 500 ر.ي\nالمجموع الكلي بالريال اليمني: ${totalYER_without_fee + 500} ر.ي`;
+      let addressInfo = isDelivery ? `\nالمنطقة: ${areaText}\nرسوم التوصيل: ${fee} ر.ي\nرابط خرائط جوجل: ${mapsLink}` : `\nعمولة النقطة: 500 ر.ي`;
       
       const targetPhone = "967785644697";
       let extraFeeMsg = isDelivery ? `%0Aرسوم التوصيل: ${fee} ر.ي` : '';
@@ -742,8 +742,7 @@ window.submitCartOrder = function(event) {
             messageText += ` رابط موقع العميل: ${mapsLink}`;
         } else {
             messageText += ` طريقة الاستلام: عبر النقطة%0A`;
-            messageText += ` عمولة النقطة: 500 ر.ي%0A`;
-            messageText += ` المجموع الكلي بالريال اليمني: ${(grandTotalSAR * 420) + 500} ر.ي`;
+            messageText += ` عمولة النقطة: 500 ر.ي`;
         }
         
         let combinedAddress = isDelivery ? `${areaText} - ${mapsLink}` : 'عبر النقطة';
