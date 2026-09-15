@@ -2,17 +2,16 @@ let products = [];
 // ضع معرّف جدول بيانات جوجل الخاص بك هنا (Spreadsheet ID)
 // مثلاً إذا كان الرابط: https://docs.google.com/spreadsheets/d/1A2B3C4D5E6F/edit
 // فالمعرف هو: 1A2B3C4D5E6F
-const SHEET_ID = '1o-StXqzi9SmOMcMj50vkRroFDBR3k75JjhQr-Zop4WI'; 
-
+const SHEET_ID = '1o-StXqzi9SmOMcMj50vkRroFDBR3k75JjhQr-Zop4WI';
 async function fetchProductsFromSheet() {
     const loadingEl = document.getElementById('loadingProducts');
     
-    if (SHEET_ID === 'YOUR_SHEET_ID_HERE') {
+    if (SHEET_ID === '0') {
         if (loadingEl) loadingEl.innerHTML = '<p style="color:var(--primary); font-size:1.1rem; line-height:1.6;">يرجى إضافة معرّف Google Sheet في ملف script.js لعرض المنتجات.</p>';
         return;
     }
     
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=الورقة 1`;
     
     try {
         const response = await fetch(url);
@@ -68,7 +67,7 @@ let cartCount = 0;
 const YER_EXCHANGE_RATE = 420;     // متغير يتم فيه تخزين قيمة الصرف المطلوبة للريال السعودي بما يقابله من الريال اليمني
 
 let favItems = JSON.parse(localStorage.getItem('favItems')) || [];
-const ORDERS_API_URL = "https://script.google.com/macros/s/AKfycbxdjn5E6z6Tf6LT_o7ue9LvjAW1pBQv9YEJ6DpntUQAPPag9jTjhasvJMuHtUaGAMo4xA/exec";
+const ORDERS_API_URL = "https://script.google.com/macros/s/AKfycbzhxXQ_QpvTstfzDQr8IqRjbYLMwi7dV7g44nhxhWrLmm7D6cNKDxrX-YIQIsfRBfRgJw/exec";
 const favCountElement = document.querySelector('.fav-count');
 
 // Pagination logic
