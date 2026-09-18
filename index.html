@@ -343,12 +343,206 @@
                     <a href="https://www.instagram.com/iuxeauraye?igsi=cGE5NGVlaXJ3NWI%3D" target="_blank" aria-label="انستغرام"><i class="fab fa-instagram"></i></a>
                     <a href="#" aria-label="سناب شات"><i class="fab fa-snapchat-ghost"></i></a>
                     <a href="https://www.whatsapp.com/channel/0029VbDMnT97j6gEnJVMJF2G" target="_blank" aria-label="واتساب"><i class="fab fa-whatsapp"></i></a>
+                            <option value="" data-fee="0" selected disabled>اختر منطقتك...</option>
+                            <!-- سيتم تعبئة المناطق وتسعيرتها هنا برمجياً -->
+                            </select>
+                      </div>
+                        <div class="form-group">
+                            <label for="googleMapsLink">تحديد الموقع بالتحديد عبر خرائط جوجل <span class="required">*</span></label>
+                            <input type="url" id="googleMapsLink" placeholder="ضع رابط موقعك من خرائط جوجل هنا" class="maps-input">
+                            <div class="maps-actions">
+                                <button type="button" class="btn-location" onclick="getCurrentLocation('googleMapsLink', this)"><i class="fas fa-location-arrow"></i> تحديد موقعي الحالي</button>
+                                <a href="https://www.google.com/maps/search/?api=1&query=سيئون,+حضرموت,+اليمن" target="_blank" class="btn-open-maps"><i class="fas fa-map-marked-alt"></i> فتح الخرائط لاختيار موقع</a>
+                            </div>
+                        </div>
+                  </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label>طريقة الدفع <span class="required">*</span></label>
+                        <div class="radio-group" style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <label class="radio-label" style="flex:1;">
+                                <input type="radio" name="paymentMethod" value="bank_transfer" checked>
+                                <span>تحويل بنكي</span>
+                            </label>
+                        </div>
+                        <div class="payment-info" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+                            <p style="margin: 0 0 10px 0; color: #d81b60; font-size: 0.9rem; font-weight: bold;">لإتمام الطلب يرجى دفع مبلغ المنتج كامل او نصفه واتمام كامل الدفع عند الاستلام</p>
+                            <p style="margin: 0; color: #495057; font-size: 0.9rem; line-height: 1.6;"><strong>رقم الحساب البنكي:</strong><br>عمقي: 25#########<br>كريمي: 30#########</p>
+                        </div>
+                    </div>
+
+                <button type="submit" class="submit-order-btn">إرسال الطلب <i class="fab fa-whatsapp"></i></button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Favorites Modal -->
+    <div id="favModal" class="modal">
+        <div class="modal-content fav-modal-content">
+            <span class="close-modal" onclick="closeFavModal()">&times;</span>
+            <h2>المفضلات</h2>
+            
+            <div id="favItemsContainer" class="fav-items">
+                <!-- Fav items will be injected here -->
+                <p class="empty-fav-msg">لا توجد منتجات في المفضلة حالياً</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Modal -->
+    <div id="cartModal" class="modal">
+        <div class="modal-content cart-modal-content">
+            <span class="close-modal" onclick="closeCartModal()">&times;</span>
+            <h2>سلة المشتريات</h2>
+            
+            <div id="cartItemsContainer" class="cart-items">
+                <!-- Cart items will be injected here -->
+                <p class="empty-cart-msg">السلة فارغة حالياً</p>
+            </div>
+            
+            <div class="cart-summary">
+                <div class="summary-row total-row">
+                    <span>المجموع الكلي للسلة:</span>
+                    <span id="cartTotalPrice" class="summary-val total-val">0 ر.س</span>
+                </div>
+            </div>
+
+            <h3 class="checkout-title">بيانات إتمام الطلب</h3>
+            <form id="cartCheckoutForm" onsubmit="submitCartOrder(event)">
+                <div class="form-group">
+                    <label for="cartCustomerName">الاسم <span class="required">*</span></label>
+                    <input type="text" id="cartCustomerName" required placeholder="أدخل اسمك الكريم">
+                </div>
+                <div class="form-group">
+                    <label for="cartCustomerPhone">رقم الهاتف <span class="required">*</span></label>
+                    <input type="tel" id="cartCustomerPhone" required placeholder="أدخل رقم الهاتف" pattern="[0-9]{9,}" title="يجب إدخال 9 أرقام على الأقل" onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+                </div>
+                  <div class="form-group">
+                      <label>طريقة الاستلام <span class="required">*</span></label>
+                      <div class="radio-group">
+                          <label class="radio-label" title="استلام المنتج عبر نقطة المتجر">
+                              <input type="radio" name="cartDeliveryMethod" value="pickup" required onchange="toggleDeliveryOptions('cart')">
+                              عبر النقطة
+                          </label>
+                          <label class="radio-label">
+                              <input type="radio" name="cartDeliveryMethod" value="delivery" required onchange="toggleDeliveryOptions('cart')">
+                              توصيل للبيت
+                          </label>
+                      </div>
+                  </div>
+                  
+                  <div id="pickupInfo_cart" class="delivery-info hidden">
+                      <p class="pickup-address"><i class="fas fa-map-marker-alt"></i> موقع النقطة: سيئون - سيتي مول</p>
+                      <p style="margin: 5px 0 0 0; color: #d81b60; font-size: 0.9rem; font-weight: bold; text-align: center;">(عمولة النقطة: 500 ر.ي)</p>
+                  </div>
+                  
+                  <div id="deliveryInfo_cart" class="delivery-info hidden">
+                      <div class="form-group">
+                          <label for="cartDeliveryArea">اختر المنطقة <span class="required">*</span></label>
+                          <select id="cartDeliveryArea" onchange="calculateCartTotal()" class="delivery-select">
+                              <option value="" data-fee="0" selected disabled>اختر منطقتك...</option>
+                              <!-- سيتم تعبئة المناطق وتسعيرتها هنا برمجياً -->
+                          </select>
+                      </div>
+                        <div class="form-group">
+                            <label for="cartGoogleMapsLink">تحديد الموقع بالتحديد عبر خرائط جوجل <span class="required">*</span></label>
+                            <input type="url" id="cartGoogleMapsLink" placeholder="ضع رابط موقعك من خرائط جوجل هنا" class="maps-input">
+                            <div class="maps-actions">
+                                <button type="button" class="btn-location" onclick="getCurrentLocation('cartGoogleMapsLink', this)"><i class="fas fa-location-arrow"></i> تحديد موقعي الحالي</button>
+                                <a href="https://www.google.com/maps/search/?api=1&query=سيئون,+حضرموت,+اليمن" target="_blank" class="btn-open-maps"><i class="fas fa-map-marked-alt"></i> فتح الخرائط لاختيار موقع</a>
+                            </div>
+                        </div>
+                  </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label>طريقة الدفع <span class="required">*</span></label>
+                        <div class="radio-group" style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <label class="radio-label" style="flex:1;">
+                                <input type="radio" name="cartPaymentMethod" value="bank_transfer" checked>
+                                <span>تحويل بنكي</span>
+                            </label>
+                        </div>
+                        <div class="payment-info" style="background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e9ecef;">
+                            <p style="margin: 0 0 10px 0; color: #d81b60; font-size: 0.9rem; font-weight: bold;">لإتمام الطلب يرجى دفع مبلغ المنتج كامل او نصفه واتمام كامل الدفع عند الاستلام</p>
+                            <p style="margin: 0; color: #495057; font-size: 0.9rem; line-height: 1.6;"><strong>رقم الحساب البنكي:</strong><br>عمقي: 25#########<br>كريمي: 30#########</p>
+                        </div>
+                    </div>
+
+                <button type="submit" id="cartSubmitBtn" class="submit-order-btn" disabled>إرسال طلب السلة <i class="fab fa-whatsapp"></i></button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reviews Modal -->
+    <div id="reviewsModal" class="modal">
+        <div class="modal-content reviews-modal-content">
+            <span class="close-modal" onclick="closeReviewModal()">&times;</span>
+            <h2>آراء العملاء</h2>
+            <p id="modalReviewProductName" class="modal-product-name"></p>
+            
+            <div class="add-review-section">
+                <h3>أضف رأيك</h3>
+                <form id="addReviewForm" onsubmit="submitReview(event)">
+                    <input type="hidden" id="reviewProductId">
+                    <div class="form-group">
+                        <input type="text" id="reviewerName" placeholder="اسمك الكريم (اختياري)">
+                    </div>
+                    <div class="form-group rating-input-group">
+                        <label>تقييمك للمنتج:</label>
+                        <div class="star-rating-input" id="starRatingInput">
+                            <i class="fas fa-star active" data-rating="1" onclick="setRating(1)"></i>
+                            <i class="fas fa-star active" data-rating="2" onclick="setRating(2)"></i>
+                            <i class="fas fa-star active" data-rating="3" onclick="setRating(3)"></i>
+                            <i class="fas fa-star active" data-rating="4" onclick="setRating(4)"></i>
+                            <i class="fas fa-star active" data-rating="5" onclick="setRating(5)"></i>
+                        </div>
+                        <input type="hidden" id="reviewRating" value="5">
+                    </div>
+                    <div class="form-group">
+                        <textarea id="reviewText" required placeholder="ما رأيك في هذا المنتج؟..." rows="3" class="review-textarea"></textarea>
+                    </div>
+                    <button type="submit" class="submit-order-btn" style="background-color: var(--primary);">إرسال الرأي <i class="fas fa-paper-plane"></i></button>
+                </form>
+            </div>
+
+            <div class="reviews-list-container">
+                <h3>الآراء السابقة</h3>
+                <div id="reviewsList" class="reviews-list">
+                    <!-- Reviews will be loaded here dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">تم إضافة المنتج للسلة بنجاح <i class="fas fa-check-circle"></i></div>
+
+    <!-- Footer / Contact Section -->
+    <footer id="contact" class="footer">
+        <div class="footer-container">
+            <!-- Right side (Branding & Contact) -->
+            <div class="footer-brand">
+                <h2 style="color: #d4af37; font-family: 'Playfair Display', serif !important; font-weight: 700 !important; letter-spacing: 1px;">Luxe Aura</h2>
+                <p class="slogan">وجهتك الأولى لكل ما يخص جمالك وأناقتك.</p>
+                <div class="contact-info-clean">
+                    <span>للتواصل:</span>
+                    <a href="https://wa.me/967785644697" target="_blank" dir="ltr">+967 785 644 697</a>
+                </div>
+            </div>
+
+            <!-- Left side (Social Links) -->
+            <div class="footer-social">
+                <h3>تابعونا</h3>
+                <div class="social-links">
+                    <a href="https://www.instagram.com/iuxeauraye?igsi=cGE5NGVlaXJ3NWI%3D" target="_blank" aria-label="انستغرام"><i class="fab fa-instagram"></i></a>
+                    <a href="#" aria-label="سناب شات"><i class="fab fa-snapchat-ghost"></i></a>
+                    <a href="https://www.whatsapp.com/channel/0029VbDMnT97j6gEnJVMJF2G" target="_blank" aria-label="واتساب"><i class="fab fa-whatsapp"></i></a>
                 </div>
             </div>
         </div>
     </footer>
 
-    <script src="script.js?v=7"></script>
+    <script src="script.js?v=10"></script>
 </body>
 </html>
-

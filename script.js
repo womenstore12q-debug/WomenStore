@@ -11,15 +11,33 @@ async function fetchProductsFromSheet() {
         return;
     }
     
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=الورقة 1`;
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=0&t=${new Date().getTime()}`;
     
+    // دالة لجلب البيانات مع محاولة إعادة الاتصال في حال فشل خوادم جوجل
+    async function fetchWithRetry(url, retries = 3) {
+        for (let i = 0; i < retries; i++) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return await response.text();
+            } catch (err) {
+                if (i === retries - 1) throw err;
+                // Wait 1 second before retrying
+                await new Promise(res => setTimeout(res, 1000));
+            }
+        }
+    }
+
     try {
-        const response = await fetch(url);
-        const text = await response.text();
+        const text = await fetchWithRetry(url);
         
         // Remove the gviz prefix/suffix to get pure JSON
-        const jsonString = text.substring(47).slice(0, -2);
+        const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
         const data = JSON.parse(jsonString);
+        
+        if (data.status === 'error') {
+            throw new Error(data.errors[0].detailed_message || data.errors[0].message);
+        }
         
         const rows = data.table.rows;
         
@@ -53,7 +71,7 @@ async function fetchProductsFromSheet() {
         fetchReviewsFromSheet();
     } catch (error) {
         console.error('Error fetching products:', error);
-        if (loadingEl) loadingEl.innerHTML = '<p style="color:red; font-size:1.1rem; line-height:1.6;">حدث خطأ أثناء تحميل المنتجات. تأكد من صحة الرابط وأن الملف متاح للجميع (Anyone with the link).</p>';
+        if (loadingEl) loadingEl.innerHTML = `<p style="color:red; font-size:1.1rem; line-height:1.6; padding: 20px; border: 1px solid red; background: #fff5f5;">حدث خطأ أثناء تحميل المنتجات. تأكد من صحة الرابط وأن الملف متاح للجميع (Anyone with the link).<br><br>تفاصيل الخطأ:<br><strong style="font-size:0.9rem;">${error.toString()}</strong></p>`;
     }
 }
 
@@ -940,7 +958,7 @@ window.setRating = function(rating) {
 
 async function fetchReviewsFromSheet() {
     if (SHEET_ID === 'YOUR_SHEET_ID_HERE') return;
-    const url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:json&sheet=Reviews';
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Reviews&t=${new Date().getTime()}`;
     try {
         const response = await fetch(url);
         const text = await response.text();
@@ -969,7 +987,7 @@ async function fetchReviewsFromSheet() {
 
 async function fetchDeliveryAreasFromSheet() {
     if (SHEET_ID === 'YOUR_SHEET_ID_HERE') return;
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=المناطق`;
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent('المناطق')}&t=${new Date().getTime()}`;
     
     try {
         const response = await fetch(url);
@@ -1004,7 +1022,7 @@ async function fetchDeliveryAreasFromSheet() {
 
 async function fetchDeliveryAreasFromSheet() {
     if (SHEET_ID === 'YOUR_SHEET_ID_HERE') return;
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=المناطق`;
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent('المناطق')}&t=${new Date().getTime()}`;
     
     try {
         const response = await fetch(url);
