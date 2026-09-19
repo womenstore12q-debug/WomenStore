@@ -11,13 +11,13 @@ async function fetchProductsFromSheet() {
         return;
     }
     
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=0&t=${new Date().getTime()}`;
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&gid=0`;
     
     // دالة لجلب البيانات مع محاولة إعادة الاتصال في حال فشل خوادم جوجل
     async function fetchWithRetry(url, retries = 3) {
         for (let i = 0; i < retries; i++) {
             try {
-                const response = await fetch(url);
+                const response = await fetch(url, { cache: 'no-store' });
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 return await response.text();
             } catch (err) {
@@ -958,9 +958,9 @@ window.setRating = function(rating) {
 
 async function fetchReviewsFromSheet() {
     if (SHEET_ID === 'YOUR_SHEET_ID_HERE') return;
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Reviews&t=${new Date().getTime()}`;
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Reviews`;
     try {
-        const response = await fetch(url);
+        const response = await fetch(url, { cache: 'no-store' });
         const text = await response.text();
         const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
         const data = JSON.parse(jsonString);
@@ -987,10 +987,10 @@ async function fetchReviewsFromSheet() {
 
 async function fetchDeliveryAreasFromSheet() {
     if (SHEET_ID === 'YOUR_SHEET_ID_HERE') return;
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent('المناطق')}&t=${new Date().getTime()}`;
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent('المناطق')}`;
     
     try {
-        const response = await fetch(url);
+        const response = await fetch(url, { cache: 'no-store' });
         const text = await response.text();
         const jsonString = text.substring(47).slice(0, -2);
         const data = JSON.parse(jsonString);
