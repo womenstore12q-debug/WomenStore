@@ -109,7 +109,11 @@
                     </div>
                     <div class="summary-row">
                         <span>الكمية:</span>
-                        <input type="number" id="productQuantity" min="1" value="1" class="qty-input" required oninput="calculateTotal()">
+                        <div class="order-qty-controls" dir="ltr" lang="en">
+                            <button type="button" class="order-qty-btn" onclick="changeOrderQuantity(-1)" aria-label="تقليل الكمية">-</button>
+                            <input type="number" id="productQuantity" min="1" value="1" class="qty-input" lang="en" required oninput="calculateTotal()">
+                            <button type="button" class="order-qty-btn" onclick="changeOrderQuantity(1)" aria-label="زيادة الكمية">+</button>
+                        </div>
                     </div>
                     <div class="summary-row total-row">
                         <span>المجموع الكلي:</span>
@@ -348,7 +352,7 @@
         </div>
     </footer>
 
-    <script src="script.js?v=12"></script>
+    <script src="script.js?v=13"></script>
 </body>
 </html>
 

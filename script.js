@@ -462,6 +462,16 @@ window.toggleDeliveryOptions = function(type) {
     else calculateCartTotal();
 };
 
+window.changeOrderQuantity = function(delta) {
+    const qtyInput = document.getElementById('productQuantity');
+    if (!qtyInput) return;
+    let currentVal = parseInt(qtyInput.value) || 1;
+    let newVal = currentVal + delta;
+    if (newVal < 1) newVal = 1;
+    qtyInput.value = newVal;
+    calculateTotal();
+};
+
 window.calculateTotal = function() {
     const qty = parseInt(productQuantity.value) || 1;
     const price = parseFloat(modalRawPrice.value) || 0;

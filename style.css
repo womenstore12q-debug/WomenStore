@@ -557,6 +557,66 @@ body {
     border-color: var(--primary);
 }
 
+.order-qty-controls {
+    display: inline-flex;
+    align-items: center;
+    direction: ltr;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.order-qty-btn {
+    background: #f8f9fa;
+    border: none;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--dark);
+    transition: background 0.2s, color 0.2s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.order-qty-btn:hover {
+    background: #e9ecef;
+    color: var(--primary);
+}
+
+.order-qty-btn:active {
+    background: #dee2e6;
+}
+
+.order-qty-controls .qty-input {
+    width: 46px;
+    height: 34px;
+    padding: 0;
+    border: none;
+    border-left: 1px solid #eee;
+    border-right: 1px solid #eee;
+    border-radius: 0;
+    text-align: center;
+    font-size: 1.05rem;
+    font-weight: bold;
+    color: var(--dark);
+    background: transparent;
+    -moz-appearance: textfield;
+    font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    font-feature-settings: "locl" 0;
+}
+
+.order-qty-controls .qty-input::-webkit-outer-spin-button,
+.order-qty-controls .qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
 .total-row {
     border-top: 1px solid #ddd;
     padding-top: 0.8rem;
